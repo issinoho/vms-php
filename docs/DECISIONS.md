@@ -75,7 +75,7 @@ vms-lighttpd's pool takes the PHP root logical as a setting (`vmslighttpd_php_ro
 
 ## D7. SSL3's 32-bit `long`: a forced-include header for ext/openssl
 
-**Status:** proposed (2026-10-08, Phase 0).
+**Status:** approved by the user (2026-10-08, Phase 0 exit).
 
 ext/openssl calls 14 `long`-typed SSL3 functions (docs/PHASE0.md). A header force-included
 into ext/openssl's compiles redefines the five `long`-returning ones as sign-extending
@@ -87,7 +87,7 @@ re-pin); our own OpenSSL built with clang (large; the fallback, as in vms-mariad
 
 ## D8. Entropy for random_bytes(): OpenSSL RAND_bytes
 
-**Status:** proposed (2026-10-08, Phase 0).
+**Status:** approved by the user (2026-10-08, Phase 0 exit).
 
 VMS has no `getrandom`, `getentropy`, `arc4random` or `/dev/urandom`, and
 `SYS$GET_ENTROPY` is not present on E9.2-4 (`CALLUNDEFSYM`). A patch to
@@ -97,7 +97,7 @@ Alternative: a home-made pool from `$GETTIM`/`$GETJPI` values (not cryptographic
 
 ## D9. max_execution_time: ITIMER_REAL / SIGALRM
 
-**Status:** proposed (2026-10-08, Phase 0).
+**Status:** approved by the user (2026-10-08, Phase 0 exit).
 
 `<signal.h>` has no `SIGPROF`; `setitimer(ITIMER_REAL)` delivers `SIGALRM`. A patch makes
 `zend_set_timeout_ex` use the real-time timer on VMS, as PHP already does on macOS on
@@ -107,7 +107,7 @@ timeout writes its message and exits).
 
 ## D10. Fibers: Boost.Context's x86-64 SysV routines
 
-**Status:** proposed (2026-10-08, Phase 0).
+**Status:** approved by the user (2026-10-08, Phase 0 exit).
 
 `Zend/asm/{make,jump}_x86_64_sysv_elf_gas.S` assemble with VSI clang and switch contexts
 correctly under the VMS calling standard (probe `r_fiber`). They reference `_exit` (reached
@@ -116,7 +116,7 @@ fibers disabled (`Fiber` throws) - not needed.
 
 ## D11. C RTL `long` interfaces and process exit codes
 
-**Status:** proposed (2026-10-08, Phase 0).
+**Status:** approved by the user (2026-10-08, Phase 0 exit).
 
 `%ld`/`%zu` and `strtol` in the C RTL are 32-bit: vms-mariadb's forced-include
 `vms_lp64.h` (D12 there) for all of PHP. `popen`/`system` work, but report DCL's success
