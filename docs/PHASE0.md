@@ -12,9 +12,9 @@ syntax without the logicals).
 
 - **PHP 8.5.11** (24 Sep 2026): `php-8.5.11.tar.xz`, SHA-256 `d9be75c0...0360` (php.net's
   release JSON), signature by Volker Dusch (`49D9AF6BC72A80D6691719C8AA23F5BE9C7097D4`).
-- Host reference build (WSL, gcc, `--disable-all` + the D3 set except openssl, libxml2
-  2.15.4 built under `cache/hostlibs`): 663 objects; `php -m`: Core ctype date dom filter
-  hash json lexbor libxml mbstring mysqli mysqlnd pcre random Reflection session SimpleXML SPL
+- Host reference build (WSL, gcc, `--disable-all` + the D3 set, libxml2 2.15.4 built under
+  `cache/hostlibs`, Ubuntu OpenSSL 3.0.13): `php -m`: Core ctype date dom filter
+  hash json lexbor libxml mbstring mysqli mysqlnd openssl pcre random Reflection session SimpleXML SPL
   standard tokenizer uri xml xmlreader xmlwriter Zend OPcache zlib. Largest parts: lexbor 186,
   standard 68, mbstring 39, dom 37, uri 34, opcache 29, bundled PCRE2 29 (not used: D4).
 - PHP 8.5 needs C99 (C11 used when present); clang 10 gives C11.
