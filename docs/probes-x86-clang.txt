@@ -1,0 +1,447 @@
+PROBE compiler CLANG: clang -std=gnu11 -D_LARGEFILE -D_USE_STD_STAT -c
+RESULT h_alloca_h cc=1 link=-
+RESULT h_arpa_inet_h cc=1 link=-
+RESULT h_arpa_nameser_h cc=1 link=-
+RESULT h_cpuid_h cc=2 link=- %CXX-F-FATAL, h_cpuid_h.c:1:10: fatal error: 'cpuid.h' file not found
+RESULT h_dirent_h cc=1 link=-
+RESULT h_dlfcn_h cc=1 link=-
+RESULT h_fcntl_h cc=1 link=-
+RESULT h_grp_h cc=1 link=-
+RESULT h_immintrin_h cc=2 link=- %CXX-F-FATAL, h_immintrin_h.c:1:10: fatal error: 'immintrin.h' file not found
+RESULT h_inttypes_h cc=1 link=-
+RESULT h_langinfo_h cc=1 link=-
+RESULT h_netinet_in_h cc=1 link=-
+RESULT h_net_if_h cc=1 link=-
+RESULT h_nmmintrin_h cc=2 link=- %CXX-F-FATAL, h_nmmintrin_h.c:1:10: fatal error: 'nmmintrin.h' file not found
+RESULT h_poll_h cc=1 link=-
+RESULT h_pty_h cc=2 link=- %CXX-F-FATAL, h_pty_h.c:1:10: fatal error: 'pty.h' file not found
+RESULT h_pwd_h cc=1 link=-
+RESULT h_resolv_h cc=1 link=-
+RESULT h_stdint_h cc=1 link=-
+RESULT h_stdio_h cc=1 link=-
+RESULT h_stdlib_h cc=1 link=-
+RESULT h_strings_h cc=1 link=-
+RESULT h_string_h cc=1 link=-
+RESULT h_sysexits_h cc=1 link=-
+RESULT h_syslog_h cc=2 link=- %CXX-F-FATAL, h_syslog_h.c:1:10: fatal error: 'syslog.h' file not found
+RESULT h_sys_file_h cc=1 link=-
+RESULT h_sys_ioctl_h cc=1 link=-
+RESULT h_sys_ipc_h cc=1 link=-
+RESULT h_sys_loadavg_h cc=2 link=- %CXX-F-FATAL, h_sys_loadavg_h.c:1:10: fatal error: 'sys/loadavg.h' file not found
+RESULT h_sys_mman_h cc=1 link=-
+RESULT h_sys_mount_h cc=2 link=- %CXX-F-FATAL, h_sys_mount_h.c:1:10: fatal error: 'sys/mount.h' file not found
+RESULT h_sys_param_h cc=1 link=-
+RESULT h_sys_poll_h cc=1 link=-
+RESULT h_sys_prctl_h cc=2 link=- %CXX-F-FATAL, h_sys_prctl_h.c:1:10: fatal error: 'sys/prctl.h' file not found
+RESULT h_sys_resource_h cc=1 link=-
+RESULT h_sys_select_h cc=2 link=- %CXX-F-FATAL, h_sys_select_h.c:1:10: fatal error: 'sys/select.h' file not found
+RESULT h_sys_socket_h cc=1 link=-
+RESULT h_sys_statfs_h cc=2 link=- %CXX-F-FATAL, h_sys_statfs_h.c:1:10: fatal error: 'sys/statfs.h' file not found
+RESULT h_sys_statvfs_h cc=1 link=-
+RESULT h_sys_stat_h cc=1 link=-
+RESULT h_sys_sysexits_h cc=2 link=- %CXX-F-FATAL, h_sys_sysexits_h.c:1:10: fatal error: 'sys/sysexits.h' file not found
+RESULT h_sys_sysmacros_h cc=2 link=- %CXX-F-FATAL, h_sys_sysmacros_h.c:1:10: fatal error: 'sys/sysmacros.h' file not found
+RESULT h_sys_time_h cc=1 link=-
+RESULT h_sys_types_h cc=1 link=-
+RESULT h_sys_uio_h cc=1 link=-
+RESULT h_sys_utsname_h cc=1 link=-
+RESULT h_sys_vfs_h cc=2 link=- %CXX-F-FATAL, h_sys_vfs_h.c:1:10: fatal error: 'sys/vfs.h' file not found
+RESULT h_sys_wait_h cc=1 link=-
+RESULT h_tmmintrin_h cc=2 link=- %CXX-F-FATAL, h_tmmintrin_h.c:1:10: fatal error: 'tmmintrin.h' file not found
+RESULT h_unistd_h cc=1 link=-
+RESULT h_utime_h cc=1 link=-
+RESULT h_wchar_h cc=1 link=-
+RESULT h_wmmintrin_h cc=2 link=- %CXX-F-FATAL, h_wmmintrin_h.c:1:10: fatal error: 'wmmintrin.h' file not found
+RESULT f_alloca cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_alphasort cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_arc4random_buf cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_asctime_r cc=1 link=1
+RESULT f_asprintf cc=0 link=1
+RESULT f_atoll cc=1 link=1
+RESULT f_chroot cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_clock_gettime cc=1 link=1
+RESULT f_copy_file_range cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_ctime_r cc=1 link=1
+RESULT f_dns_search cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_dn_expand cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_dn_skipname cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_elf_aux_info cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_explicit_bzero cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_explicit_memset cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_fdatasync cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_flock cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_fopencookie cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_fork cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_fpclassify cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_ftok cc=1 link=1
+RESULT f_funopen cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_gai_strerror cc=1 link=1
+RESULT f_getaddrinfo cc=1 link=1
+RESULT f_getcwd cc=1 link=1
+RESULT f_getentropy cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_getgrnam_r cc=1 link=1
+RESULT f_gethostname cc=1 link=1
+RESULT f_getloadavg cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_getopt cc=1 link=1
+RESULT f_getpid cc=1 link=1
+RESULT f_getprotobyname cc=1 link=1
+RESULT f_getprotobynumber cc=1 link=1
+RESULT f_getpwnam_r cc=1 link=1
+RESULT f_getpwuid_r cc=1 link=1
+RESULT f_getrandom cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_getrusage cc=1 link=1
+RESULT f_getservbyname cc=1 link=1
+RESULT f_getservbyport cc=1 link=1
+RESULT f_gettid cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_gettimeofday cc=1 link=1
+RESULT f_getwd cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_glob cc=1 link=1
+RESULT f_gmtime_r cc=1 link=1
+RESULT f_inet_ntop cc=1 link=1
+RESULT f_inet_pton cc=1 link=1
+RESULT f_issetugid cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_kill cc=1 link=1
+RESULT f_lchown cc=1 link=1
+RESULT f_localtime_r cc=1 link=1
+RESULT f_memcntl cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_memfd_create cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_memmem cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_mempcpy cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_memrchr cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_memset_explicit cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_mkstemp cc=1 link=1
+RESULT f_mmap cc=1 link=1
+RESULT f_mprotect cc=1 link=1
+RESULT f_mremap cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_nanosleep cc=1 link=1
+RESULT f_nice cc=1 link=1
+RESULT f_nl_langinfo cc=1 link=1
+RESULT f_openpty cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_poll cc=1 link=1
+RESULT f_posix_spawn_file_actions_addchdir_np cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_prctl cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_pthread_attr_getstack cc=1 link=1
+RESULT f_pthread_attr_get_np cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_pthread_getattr_np cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_pthread_get_stackaddr_np cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_pthread_jit_write_protect_np cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_pthread_stackseg_np cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_putenv cc=1 link=1
+RESULT f_reallocarray cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_realpath cc=1 link=1
+RESULT f_res_ndestroy cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_res_nsearch cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_res_search cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_scandir cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_setenv cc=1 link=1
+RESULT f_setitimer cc=1 link=1
+RESULT f_setproctitle cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_shm_create_largepage cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_shutdown cc=1 link=1
+RESULT f_sigaction cc=1 link=1
+RESULT f_sigprocmask cc=1 link=1
+RESULT f_sigsetjmp cc=0 link=1
+RESULT f_socketpair cc=1 link=1
+RESULT f_statfs cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_statvfs cc=1 link=1
+RESULT f_strcasecmp cc=0 link=1
+RESULT f_strlcat cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_strlcpy cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_strnlen cc=1 link=1
+RESULT f_strptime cc=1 link=1
+RESULT f_strtok_r cc=1 link=1
+RESULT f_strtoll cc=0 link=1
+RESULT f_symlink cc=1 link=1
+RESULT f_sys$get_entropy cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_timegm cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f_tzset cc=1 link=1
+RESULT f_unsetenv cc=1 link=1
+RESULT f_usleep cc=1 link=1
+RESULT f_utime cc=1 link=1
+RESULT f_vasprintf cc=0 link=1
+RESULT f___dns_search cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT f___res_ndestroy cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_alloca cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_alphasort cc=2 link=- %CXX-E-ERROR, g_alphasort.c:2:38: error: use of undeclared identifier 'alphasort'
+RESULT g_arc4random_buf cc=2 link=- %CXX-E-ERROR, g_arc4random_buf.c:2:38: error: use of undeclared identifier 'arc4random_buf'
+RESULT g_asctime_r cc=1 link=1
+RESULT g_asprintf cc=1 link=1
+RESULT g_atoll cc=1 link=1
+RESULT g_chroot cc=2 link=- %CXX-E-ERROR, g_chroot.c:2:38: error: use of undeclared identifier 'chroot'
+RESULT g_clock_gettime cc=1 link=1
+RESULT g_copy_file_range cc=2 link=- %CXX-E-ERROR, g_copy_file_range.c:2:38: error: use of undeclared identifier 'copy_file_range'
+RESULT g_ctime_r cc=1 link=1
+RESULT g_dns_search cc=2 link=- %CXX-E-ERROR, g_dns_search.c:2:38: error: use of undeclared identifier 'dns_search'; did you mean 'bsearch'?
+RESULT g_dn_expand cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_dn_skipname cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_elf_aux_info cc=2 link=- %CXX-E-ERROR, g_elf_aux_info.c:2:38: error: use of undeclared identifier 'elf_aux_info'
+RESULT g_explicit_bzero cc=2 link=- %CXX-E-ERROR, g_explicit_bzero.c:2:38: error: use of undeclared identifier 'explicit_bzero'
+RESULT g_explicit_memset cc=2 link=- %CXX-E-ERROR, g_explicit_memset.c:2:38: error: use of undeclared identifier 'explicit_memset'
+RESULT g_fdatasync cc=2 link=- %CXX-E-ERROR, g_fdatasync.c:2:38: error: use of undeclared identifier 'fdatasync'
+RESULT g_flock cc=2 link=- %CXX-E-ERROR, g_flock.c:2:38: error: use of undeclared identifier 'flock'; did you mean 'clock'?
+RESULT g_fopencookie cc=2 link=- %CXX-E-ERROR, g_fopencookie.c:2:38: error: use of undeclared identifier 'fopencookie'
+RESULT g_fork cc=2 link=- %CXX-E-ERROR, g_fork.c:2:38: error: use of undeclared identifier 'fork'; did you mean 'for'? %CXX-E-ERROR, g_fork.c:2:38: error: expected expression
+RESULT g_fpclassify cc=2 link=- %CXX-E-ERROR, g_fpclassify.c:2:38: error: use of undeclared identifier 'fpclassify'
+RESULT g_ftok cc=1 link=1
+RESULT g_funopen cc=2 link=- %CXX-E-ERROR, g_funopen.c:2:38: error: use of undeclared identifier 'funopen'
+RESULT g_gai_strerror cc=1 link=1
+RESULT g_getaddrinfo cc=1 link=1
+RESULT g_getcwd cc=1 link=1
+RESULT g_getentropy cc=2 link=- %CXX-E-ERROR, g_getentropy.c:2:38: error: use of undeclared identifier 'getentropy'
+RESULT g_getgrnam_r cc=2 link=- %CXX-E-ERROR, g_getgrnam_r.c:2:38: error: use of undeclared identifier 'getgrnam_r'; did you mean 'getpwnam_r'?
+RESULT g_gethostname cc=1 link=1
+RESULT g_getloadavg cc=2 link=- %CXX-E-ERROR, g_getloadavg.c:2:38: error: use of undeclared identifier 'getloadavg'
+RESULT g_getopt cc=1 link=1
+RESULT g_getpid cc=1 link=1
+RESULT g_getprotobyname cc=1 link=1
+RESULT g_getprotobynumber cc=1 link=1
+RESULT g_getpwnam_r cc=1 link=1
+RESULT g_getpwuid_r cc=1 link=1
+RESULT g_getrandom cc=2 link=- %CXX-E-ERROR, g_getrandom.c:2:38: error: use of undeclared identifier 'getrandom'
+RESULT g_getrusage cc=1 link=1
+RESULT g_getservbyname cc=1 link=1
+RESULT g_getservbyport cc=1 link=1
+RESULT g_gettid cc=2 link=- %CXX-E-ERROR, g_gettid.c:2:38: error: use of undeclared identifier 'gettid'
+RESULT g_gettimeofday cc=1 link=1
+RESULT g_getwd cc=2 link=- %CXX-E-ERROR, g_getwd.c:2:38: error: use of undeclared identifier 'getwd'
+RESULT g_glob cc=2 link=- %CXX-E-ERROR, g_glob.c:2:38: error: use of undeclared identifier 'glob'
+RESULT g_gmtime_r cc=1 link=1
+RESULT g_inet_ntop cc=1 link=1
+RESULT g_inet_pton cc=1 link=1
+RESULT g_issetugid cc=2 link=- %CXX-E-ERROR, g_issetugid.c:2:38: error: use of undeclared identifier 'issetugid'
+RESULT g_kill cc=1 link=1
+RESULT g_lchown cc=1 link=1
+RESULT g_localtime_r cc=1 link=1
+RESULT g_memcntl cc=2 link=- %CXX-E-ERROR, g_memcntl.c:2:38: error: use of undeclared identifier 'memcntl'
+RESULT g_memfd_create cc=2 link=- %CXX-E-ERROR, g_memfd_create.c:2:38: error: use of undeclared identifier 'memfd_create'
+RESULT g_memmem cc=2 link=- %CXX-E-ERROR, g_memmem.c:2:38: error: use of undeclared identifier 'memmem'; did you mean 'memset'?
+RESULT g_mempcpy cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_memrchr cc=2 link=- %CXX-E-ERROR, g_memrchr.c:2:38: error: use of undeclared identifier 'memrchr'; did you mean 'memchr'?
+RESULT g_memset_explicit cc=2 link=- %CXX-E-ERROR, g_memset_explicit.c:2:38: error: use of undeclared identifier 'memset_explicit'
+RESULT g_mkstemp cc=1 link=1
+RESULT g_mmap cc=1 link=1
+RESULT g_mprotect cc=1 link=1
+RESULT g_mremap cc=2 link=- %CXX-E-ERROR, g_mremap.c:2:38: error: use of undeclared identifier 'mremap'
+RESULT g_nanosleep cc=1 link=1
+RESULT g_nice cc=1 link=1
+RESULT g_nl_langinfo cc=1 link=1
+RESULT g_openpty cc=2 link=- %CXX-E-ERROR, g_openpty.c:2:38: error: use of undeclared identifier 'openpty'
+RESULT g_poll cc=1 link=1
+RESULT g_posix_spawn_file_actions_addchdir_np cc=2 link=- %CXX-E-ERROR, g_posix_spawn_file_actions_addchdir_np.c:2:38: error: use of undeclared identifier 'posix_spawn_file_actions_addchdir_np'
+RESULT g_prctl cc=2 link=- %CXX-E-ERROR, g_prctl.c:2:38: error: use of undeclared identifier 'prctl'; did you mean 'ioctl'?
+RESULT g_pthread_attr_getstack cc=1 link=1
+RESULT g_pthread_attr_get_np cc=2 link=- %CXX-E-ERROR, g_pthread_attr_get_np.c:2:38: error: use of undeclared identifier 'pthread_attr_get_np'
+RESULT g_pthread_getattr_np cc=2 link=- %CXX-E-ERROR, g_pthread_getattr_np.c:2:38: error: use of undeclared identifier 'pthread_getattr_np'; did you mean 'pthread_getname_np'?
+RESULT g_pthread_get_stackaddr_np cc=2 link=- %CXX-E-ERROR, g_pthread_get_stackaddr_np.c:2:38: error: use of undeclared identifier 'pthread_get_stackaddr_np'
+RESULT g_pthread_jit_write_protect_np cc=2 link=- %CXX-E-ERROR, g_pthread_jit_write_protect_np.c:2:38: error: use of undeclared identifier 'pthread_jit_write_protect_np'
+RESULT g_pthread_stackseg_np cc=2 link=- %CXX-E-ERROR, g_pthread_stackseg_np.c:2:38: error: use of undeclared identifier 'pthread_stackseg_np'; did you mean 'pthread_stackovf_e'?
+RESULT g_putenv cc=1 link=1
+RESULT g_reallocarray cc=2 link=- %CXX-E-ERROR, g_reallocarray.c:2:38: error: use of undeclared identifier 'reallocarray'
+RESULT g_realpath cc=1 link=1
+RESULT g_res_ndestroy cc=2 link=- %CXX-E-ERROR, g_res_ndestroy.c:2:38: error: use of undeclared identifier 'res_ndestroy'
+RESULT g_res_nsearch cc=2 link=- %CXX-E-ERROR, g_res_nsearch.c:2:38: error: use of undeclared identifier 'res_nsearch'
+RESULT g_res_search cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_scandir cc=2 link=- %CXX-E-ERROR, g_scandir.c:2:38: error: use of undeclared identifier 'scandir'
+RESULT g_setenv cc=1 link=1
+RESULT g_setitimer cc=1 link=1
+RESULT g_setproctitle cc=2 link=- %CXX-E-ERROR, g_setproctitle.c:2:38: error: use of undeclared identifier 'setproctitle'
+RESULT g_shm_create_largepage cc=2 link=- %CXX-E-ERROR, g_shm_create_largepage.c:2:38: error: use of undeclared identifier 'shm_create_largepage'
+RESULT g_shutdown cc=1 link=1
+RESULT g_sigaction cc=1 link=1
+RESULT g_sigprocmask cc=1 link=1
+RESULT g_sigsetjmp cc=1 link=1
+RESULT g_socketpair cc=1 link=1
+RESULT g_statfs cc=2 link=- %CXX-E-ERROR, g_statfs.c:2:38: error: use of undeclared identifier 'statfs'; did you mean 'statvfs'?
+RESULT g_statvfs cc=1 link=1
+RESULT g_strcasecmp cc=1 link=1
+RESULT g_strlcat cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_strlcpy cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_strnlen cc=1 link=1
+RESULT g_strptime cc=1 link=1
+RESULT g_strtok_r cc=1 link=1
+RESULT g_strtoll cc=1 link=1
+RESULT g_symlink cc=1 link=1
+RESULT g_sys$get_entropy cc=2 link=- %CXX-E-ERROR, g_sys$get_entropy.c:2:38: error: use of undeclared identifier 'sys$get_entropy'
+RESULT g_timegm cc=2 link=- %CXX-E-ERROR, g_timegm.c:2:38: error: use of undeclared identifier 'timegm'
+RESULT g_tzset cc=1 link=1
+RESULT g_unsetenv cc=1 link=1
+RESULT g_usleep cc=1 link=1
+RESULT g_utime cc=1 link=1
+RESULT g_vasprintf cc=1 link=1
+RESULT g__builtins cc=1 link=1
+RESULT g___dns_search cc=2 link=- %CXX-E-ERROR, g___dns_search.c:2:38: error: use of undeclared identifier '__dns_search'
+RESULT g___res_ndestroy cc=2 link=- %CXX-E-ERROR, g___res_ndestroy.c:2:38: error: use of undeclared identifier '__res_ndestroy'
+%ILINK-W-NUDFSYMS, 1 undefined symbol:
+%ILINK-I-UDFSYM, 	sys$get_entropy 
+%ILINK-W-USEUNDEF, undefined symbol sys$get_entropy referenced
+	section: .text
+	offset: %X000000000000005A
+	module: R_ENTROPY 
+	file: DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]PROBE_TMP.OBJ;1 
+%ILINK-W-USEUNDEF, undefined symbol sys$get_entropy referenced
+	section: .text
+	offset: %X000000000000006F
+	module: R_ENTROPY 
+	file: DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]PROBE_TMP.OBJ;1 
+--- r_entropy (CRTL defaults)
+%SYSTEM-F-CALLUNDEFSYM, Call using undefined function symbol
+%TRACE-F-TRACEBACK, symbolic stack dump follows
+image     module    routine               line      rel PC           abs PC     
+r_entropy                                    0 0000000080000198 0000000080000198
+r_entropy  R_ENTROPY                      2148 000000000000005D 000000008000005D
+r_entropy                                    0 0000000080000163 0000000080000163
+                                             0 FFFF83000694FCC6 FFFF83000694FCC6
+DCL                                          0 0000000080045134 000000007AD0F134
+%TRACE-I-END, end of TRACE stack dump
+--- r_entropy (feature logicals)
+%SYSTEM-F-CALLUNDEFSYM, Call using undefined function symbol
+%TRACE-F-TRACEBACK, symbolic stack dump follows
+image     module    routine               line      rel PC           abs PC     
+r_entropy                                    0 0000000080000198 0000000080000198
+r_entropy  R_ENTROPY                      2148 000000000000005D 000000008000005D
+r_entropy                                    0 0000000080000163 0000000080000163
+                                             0 FFFF83000694FCC6 FFFF83000694FCC6
+DCL                                          0 0000000080045134 000000007AD0F134
+%TRACE-I-END, end of TRACE stack dump
+RESULT fiber_asm make cc=1
+RESULT fiber_asm jump cc=1
+%ILINK-W-NUDFSYMS, 1 undefined symbol:
+%ILINK-I-UDFSYM, 	_exit 
+%ILINK-W-USEUNDEF, undefined symbol _exit referenced
+	section: .text
+	offset: %X0000000000000033
+	module: FIBER_MAKE 
+	file: DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]FIBER_MAKE.OBJ;1 
+--- r_fiber (CRTL defaults)
+RESULT fiber switch 1: back in main, value=10
+RESULT fiber switch 2: back in main, value=30
+RESULT fiber switch 3: back in main, value=60
+RESULT fiber ok
+--- r_fiber (feature logicals)
+RESULT fiber switch 1: back in main, value=10
+RESULT fiber switch 2: back in main, value=30
+RESULT fiber switch 3: back in main, value=60
+RESULT fiber ok
+--- r_mem (CRTL defaults)
+RESULT pagesize 8192
+RESULT mmap_shared_anon 128 MB ok at 80006000, last byte 5a
+RESULT mprotect_shared_anon read-only rc=0 errno=0
+RESULT munmap_shared_anon rc=0
+RESULT mmap_private_anon 64 MB ok at 80006000, last byte 5a
+RESULT mprotect_private_anon read-only rc=0 errno=0
+RESULT munmap_private_anon rc=0
+RESULT mmap_shared_anon_big 512 MB ok at 88006000, last byte 5a
+RESULT mprotect_shared_anon_big read-only rc=0 errno=0
+RESULT munmap_shared_anon_big rc=0
+RESULT posix_memalign 2MB/2MB rc=0 at A8200000 aligned=1
+RESULT munmap_partial_head lead=2072576 rc=0 errno=0
+--- r_mem (feature logicals)
+RESULT pagesize 8192
+RESULT mmap_shared_anon 128 MB ok at 80006000, last byte 5a
+RESULT mprotect_shared_anon read-only rc=0 errno=0
+RESULT munmap_shared_anon rc=0
+RESULT mmap_private_anon 64 MB ok at 80006000, last byte 5a
+RESULT mprotect_private_anon read-only rc=0 errno=0
+RESULT munmap_private_anon rc=0
+RESULT mmap_shared_anon_big 512 MB ok at 88006000, last byte 5a
+RESULT mprotect_shared_anon_big read-only rc=0 errno=0
+RESULT munmap_shared_anon_big rc=0
+RESULT posix_memalign 2MB/2MB rc=0 at A8200000 aligned=1
+RESULT munmap_partial_head lead=2072576 rc=0 errno=0
+--- r_misc (CRTL defaults)
+RESULT sizes long=8 size_t=8 void*=8 long long=8 LONG_MAX=9223372036854775807
+RESULT printf64 "0 1099511627776 0 123456789abc" (want "1099511627776 1099511627776 1099511627776 123456789abc")
+RESULT strtoll 9000000000 strtol 2147483647
+RESULT va_copy sum=6
+RESULT localtime 2026-10-08 18:22:50 BST +0100 TZ=(unset)
+RESULT strptime ok
+RESULT setlocale C=ok ""=ok codeset=ASCII
+RESULT mkstemp /sys$scratch/php03eab7 fd=3 errno=2
+RESULT popen read "popen-ok" pclose=256
+RESULT system rc=1
+RESULT setenv rc=0 getenv=x1
+RESULT getaddrinfo localhost rc=0 family=2
+RESULT getaddrinfo 127.0.0.1 rc=0
+RESULT /dev/urandom fd=-1 errno=2
+--- r_misc (feature logicals)
+RESULT sizes long=8 size_t=8 void*=8 long long=8 LONG_MAX=9223372036854775807
+RESULT printf64 "0 1099511627776 0 123456789abc" (want "1099511627776 1099511627776 1099511627776 123456789abc")
+RESULT strtoll 9000000000 strtol 2147483647
+RESULT va_copy sum=6
+RESULT localtime 2026-10-08 18:22:50 BST +0100 TZ=(unset)
+RESULT strptime ok
+RESULT setlocale C=ok ""=ok codeset=ASCII
+RESULT mkstemp /sys$scratch/php03eab7 fd=3 errno=2
+RESULT popen read "popen-ok" pclose=256
+RESULT system rc=1
+RESULT setenv rc=0 getenv=x1
+RESULT getaddrinfo localhost rc=0 family=2
+RESULT getaddrinfo 127.0.0.1 rc=0
+RESULT /dev/urandom fd=-1 errno=2
+--- r_stat (CRTL defaults)
+RESULT sizeof st_ino=8 st_dev=8 off_t=8 time_t=4
+RESULT ino stat=82808 fstat=82808 lstat=82808 same=1
+RESULT ino after rename same=1
+RESULT getcwd DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]
+RESULT stat "ioprobe/b.php" ok ino=82808 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/a.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe" ok ino=82807 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/" ok ino=82807 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/./b.php" ok ino=82808 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/../ioprobe/b.php" ok ino=82808 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/missing/deeper/x.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/b.php/x" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/a.b.c.d.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/vendor/symfony/polyfill-mbstring/bootstrap80.php" rc=-1 errno=2 no such file or directory
+RESULT stat "." ok ino=344441 dev=4402633048364 mode=40750 size=16896
+RESULT stat ".." ok ino=861012 dev=4402633048364 mode=40750 size=512
+RESULT stat "/sys$scratch" ok ino=142089 dev=4402633048064 mode=40755 size=19456
+RESULT stat "/SYS$SYSDEVICE/000000" ok ino=262148 dev=4402633048064 mode=40751 size=2048
+RESULT stat "" rc=-1 errno=2 no such file or directory
+--- r_stat (feature logicals)
+RESULT sizeof st_ino=8 st_dev=8 off_t=8 time_t=4
+RESULT ino stat=148344 fstat=148344 lstat=148344 same=1
+RESULT ino after rename same=1
+RESULT getcwd /DISK$SYSDUMP/IAIN/vms_php/PHP_PROBE
+RESULT stat "ioprobe/b.php" ok ino=148344 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/a.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe" ok ino=148343 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/" ok ino=148343 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/./b.php" ok ino=148344 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/../ioprobe/b.php" ok ino=148344 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/missing/deeper/x.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/b.php/x" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/a.b.c.d.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/vendor/symfony/polyfill-mbstring/bootstrap80.php" rc=-1 errno=2 no such file or directory
+RESULT stat "." ok ino=344441 dev=4402633048364 mode=40750 size=16896
+RESULT stat ".." ok ino=861012 dev=4402633048364 mode=40750 size=512
+RESULT stat "/sys$scratch" ok ino=142089 dev=4402633048064 mode=40755 size=19456
+RESULT stat "/SYS$SYSDEVICE/000000" ok ino=262148 dev=4402633048064 mode=40751 size=2048
+RESULT stat "" rc=-1 errno=2 no such file or directory
+%CXX-E-ERROR, r_timer.c:51:34: error: use of undeclared identifier 'SIGPROF'
+  try_timer("prof", ITIMER_PROF, SIGPROF);
+                                 ^
+%CXX-E-ERROR, r_timer.c:52:40: error: use of undeclared identifier 'SIGVTALRM'
+  try_timer("virtual", ITIMER_VIRTUAL, SIGVTALRM);
+                                       ^
+%CXX-E-ENDDIAG, 2 errors generated.
+--- r_timer did not compile
+--- r_zstack (CRTL defaults)
+RESULT stack reached 1 MB
+RESULT stack reached 2 MB
+RESULT stack reached 4 MB
+RESULT stack reached 8 MB
+RESULT stack reached 16 MB
+RESULT stack reached 32 MB
+RESULT stack reached 64 MB
+RESULT stack ok to 64 MB
+--- r_zstack (feature logicals)
+RESULT stack reached 1 MB
+RESULT stack reached 2 MB
+RESULT stack reached 4 MB
+RESULT stack reached 8 MB
+RESULT stack reached 16 MB
+RESULT stack reached 32 MB
+RESULT stack reached 64 MB
+RESULT stack ok to 64 MB
+PROBE-DONE

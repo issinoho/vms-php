@@ -48,8 +48,16 @@ int main(void)
   struct sigaction sa;
   sigset_t cur;
 
+#ifdef SIGPROF
   try_timer("prof", ITIMER_PROF, SIGPROF);
+#else
+  printf("RESULT timer_prof no SIGPROF in <signal.h>\n");
+#endif
+#ifdef SIGVTALRM
   try_timer("virtual", ITIMER_VIRTUAL, SIGVTALRM);
+#else
+  printf("RESULT timer_virtual no SIGVTALRM in <signal.h>\n");
+#endif
   try_timer("real", ITIMER_REAL, SIGALRM);
 
   /* zend_bailout()-style escape: siglongjmp out of a handler, mask restored? */

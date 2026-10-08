@@ -1,0 +1,249 @@
+PROBE compiler CLANG: clang -std=gnu11 -D_LARGEFILE -D_USE_STD_STAT -c
+%ILINK-W-NUDFSYMS, 1 undefined symbol:
+%ILINK-I-UDFSYM, 	sys$get_entropy 
+%ILINK-W-USEUNDEF, undefined symbol sys$get_entropy referenced
+	section: .text
+	offset: %X000000000000005A
+	module: R_ENTROPY 
+	file: DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]PROBE_TMP.OBJ;1 
+%ILINK-W-USEUNDEF, undefined symbol sys$get_entropy referenced
+	section: .text
+	offset: %X000000000000006F
+	module: R_ENTROPY 
+	file: DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]PROBE_TMP.OBJ;1 
+--- r_entropy (CRTL defaults)
+%SYSTEM-F-CALLUNDEFSYM, Call using undefined function symbol
+%TRACE-F-TRACEBACK, symbolic stack dump follows
+image     module    routine               line      rel PC           abs PC     
+r_entropy                                    0 0000000080000198 0000000080000198
+r_entropy  R_ENTROPY                      2148 000000000000005D 000000008000005D
+r_entropy                                    0 0000000080000163 0000000080000163
+                                             0 FFFF83000694FCC6 FFFF83000694FCC6
+DCL                                          0 0000000080045134 000000007AD0F134
+%TRACE-I-END, end of TRACE stack dump
+--- r_entropy (feature logicals)
+%SYSTEM-F-CALLUNDEFSYM, Call using undefined function symbol
+%TRACE-F-TRACEBACK, symbolic stack dump follows
+image     module    routine               line      rel PC           abs PC     
+r_entropy                                    0 0000000080000198 0000000080000198
+r_entropy  R_ENTROPY                      2148 000000000000005D 000000008000005D
+r_entropy                                    0 0000000080000163 0000000080000163
+                                             0 FFFF83000694FCC6 FFFF83000694FCC6
+DCL                                          0 0000000080045134 000000007AD0F134
+%TRACE-I-END, end of TRACE stack dump
+RESULT fiber_asm make cc=1
+RESULT fiber_asm jump cc=1
+%ILINK-W-NUDFSYMS, 1 undefined symbol:
+%ILINK-I-UDFSYM, 	_exit 
+%ILINK-W-USEUNDEF, undefined symbol _exit referenced
+	section: .text
+	offset: %X0000000000000033
+	module: FIBER_MAKE 
+	file: DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]FIBER_MAKE.OBJ;4 
+--- r_fiber (CRTL defaults)
+RESULT fiber switch 1: back in main, value=10
+RESULT fiber switch 2: back in main, value=30
+RESULT fiber switch 3: back in main, value=60
+RESULT fiber ok
+--- r_fiber (feature logicals)
+RESULT fiber switch 1: back in main, value=10
+RESULT fiber switch 2: back in main, value=30
+RESULT fiber switch 3: back in main, value=60
+RESULT fiber ok
+--- r_jmp (CRTL defaults)
+RESULT siglongjmp_plain mask0 ok r=-1
+RESULT siglongjmp_plain mask1 ok r=-1
+RESULT longjmp_plain ok r=7
+%SYSTEM-F-ACCVIO, access violation, reason mask=04, virtual address=0000000000000011, PC=FFFF8300069503A2, PS=0000001B
+
+  Improperly handled condition, image exit forced.
+    Signal arguments:   Number = 0000000000000005
+                        Name   = 000000000000000C
+                                 0000000000000004
+                                 0000000000000011
+                                 FFFF8300069503A2
+                                 000000000000001B
+    Register dump:
+    RAX = 0000000000000001  RDI = FFFFFFFF63B187F0  RSI = FFFFFFFF804991F0
+    RDX = 0000000000000000  RCX = FFFFFFFF89C05FDE  R8  = FFFFFFFF631D8000
+    R9  = 000000000000ECD8  RBX = 000000007ABF5F00  RBP = 000000007ABF37F0
+    R10 = FFFFFFFFFFFFFFD9  R11 = 0000000000000000  R12 = 000000007ABF3738
+    R13 = 0000000080006000  R14 = 000000007ABF39A0  R15 = 000000007ABF4602
+    RIP = FFFF8300069503A2  RSP = 000000007ABF3730  SS  = 000000007FFCDC18
+--- r_jmp (feature logicals)
+RESULT siglongjmp_plain mask0 ok r=-1
+RESULT siglongjmp_plain mask1 ok r=-1
+RESULT longjmp_plain ok r=7
+%SYSTEM-F-ACCVIO, access violation, reason mask=04, virtual address=0000000000000011, PC=FFFF8300069503A2, PS=0000001B
+
+  Improperly handled condition, image exit forced.
+    Signal arguments:   Number = 0000000000000005
+                        Name   = 000000000000000C
+                                 0000000000000004
+                                 0000000000000011
+                                 FFFF8300069503A2
+                                 000000000000001B
+    Register dump:
+    RAX = 0000000000000001  RDI = FFFFFFFF63600DD0  RSI = FFFFFFFF804991F0
+    RDX = 0000000000000000  RCX = FFFFFFFF89C05FDE  R8  = FFFFFFFF631D8000
+    R9  = 0000000000006A7B  RBX = 000000007ABF5F00  RBP = 000000007ABF37F0
+    R10 = FFFFFFFFFFFFFFD9  R11 = 0000000000000000  R12 = 000000007ABF3738
+    R13 = 0000000080006000  R14 = 000000007ABF39A0  R15 = 000000007ABF4602
+    RIP = FFFF8300069503A2  RSP = 000000007ABF3730  SS  = 000000007FFCDC18
+--- r_mem (CRTL defaults)
+RESULT pagesize 8192
+RESULT mmap_shared_anon 128 MB ok at 80006000, last byte 5a
+RESULT mprotect_shared_anon read-only rc=0 errno=0
+RESULT munmap_shared_anon rc=0
+RESULT mmap_private_anon 64 MB ok at 80006000, last byte 5a
+RESULT mprotect_private_anon read-only rc=0 errno=0
+RESULT munmap_private_anon rc=0
+RESULT mmap_shared_anon_big 512 MB ok at 88006000, last byte 5a
+RESULT mprotect_shared_anon_big read-only rc=0 errno=0
+RESULT munmap_shared_anon_big rc=0
+RESULT posix_memalign 2MB/2MB rc=0 at A8200000 aligned=1
+RESULT munmap_partial_head lead=2072576 rc=0 errno=0
+--- r_mem (feature logicals)
+RESULT pagesize 8192
+RESULT mmap_shared_anon 128 MB ok at 80006000, last byte 5a
+RESULT mprotect_shared_anon read-only rc=0 errno=0
+RESULT munmap_shared_anon rc=0
+RESULT mmap_private_anon 64 MB ok at 80006000, last byte 5a
+RESULT mprotect_private_anon read-only rc=0 errno=0
+RESULT munmap_private_anon rc=0
+RESULT mmap_shared_anon_big 512 MB ok at 88006000, last byte 5a
+RESULT mprotect_shared_anon_big read-only rc=0 errno=0
+RESULT munmap_shared_anon_big rc=0
+RESULT posix_memalign 2MB/2MB rc=0 at A8200000 aligned=1
+RESULT munmap_partial_head lead=2072576 rc=0 errno=0
+--- r_misc (CRTL defaults)
+RESULT sizes long=8 size_t=8 void*=8 long long=8 LONG_MAX=9223372036854775807
+RESULT printf64 "0 1099511627776 0 123456789abc" (want "1099511627776 1099511627776 1099511627776 123456789abc")
+RESULT strtoll 9000000000 strtol 2147483647
+RESULT va_copy sum=6
+RESULT localtime 2026-10-08 18:29:55 BST +0100 TZ=(unset)
+RESULT strptime ok
+RESULT setlocale C=ok ""=ok codeset=ASCII
+RESULT mkstemp /sys$scratch/php03ec5f fd=3 errno=2
+RESULT popen read "popen-ok" pclose=256
+RESULT system rc=1
+RESULT setenv rc=0 getenv=x1
+RESULT getaddrinfo localhost rc=0 family=2
+RESULT getaddrinfo 127.0.0.1 rc=0
+RESULT /dev/urandom fd=-1 errno=2
+--- r_misc (feature logicals)
+RESULT sizes long=8 size_t=8 void*=8 long long=8 LONG_MAX=9223372036854775807
+RESULT printf64 "0 1099511627776 0 123456789abc" (want "1099511627776 1099511627776 1099511627776 123456789abc")
+RESULT strtoll 9000000000 strtol 2147483647
+RESULT va_copy sum=6
+RESULT localtime 2026-10-08 18:29:55 BST +0100 TZ=(unset)
+RESULT strptime ok
+RESULT setlocale C=ok ""=ok codeset=ASCII
+RESULT mkstemp /sys$scratch/php03ec5f fd=3 errno=2
+RESULT popen read "popen-ok" pclose=256
+RESULT system rc=1
+RESULT setenv rc=0 getenv=x1
+RESULT getaddrinfo localhost rc=0 family=2
+RESULT getaddrinfo 127.0.0.1 rc=0
+RESULT /dev/urandom fd=-1 errno=2
+--- r_stat (CRTL defaults)
+RESULT sizeof st_ino=8 st_dev=8 off_t=8 time_t=4
+RESULT ino stat=83498 fstat=83498 lstat=83498 same=1
+RESULT ino after rename same=1
+RESULT getcwd DISK$SYSDUMP:[IAIN.vms_php.PHP_PROBE]
+RESULT stat "ioprobe/b.php" ok ino=83498 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/a.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe" ok ino=83497 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/" ok ino=83497 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/./b.php" ok ino=83498 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/../ioprobe/b.php" ok ino=83498 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/missing/deeper/x.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/b.php/x" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/a.b.c.d.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/vendor/symfony/polyfill-mbstring/bootstrap80.php" rc=-1 errno=2 no such file or directory
+RESULT stat "." ok ino=344441 dev=4402633048364 mode=40750 size=20992
+RESULT stat ".." ok ino=861012 dev=4402633048364 mode=40750 size=512
+RESULT stat "/sys$scratch" ok ino=142089 dev=4402633048064 mode=40755 size=20480
+RESULT stat "/SYS$SYSDEVICE/000000" ok ino=262148 dev=4402633048064 mode=40751 size=2048
+RESULT stat "" rc=-1 errno=2 no such file or directory
+--- r_stat (feature logicals)
+RESULT sizeof st_ino=8 st_dev=8 off_t=8 time_t=4
+RESULT ino stat=149034 fstat=149034 lstat=149034 same=1
+RESULT ino after rename same=1
+RESULT getcwd /DISK$SYSDUMP/IAIN/vms_php/PHP_PROBE
+RESULT stat "ioprobe/b.php" ok ino=149034 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/a.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe" ok ino=149033 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/" ok ino=149033 dev=4402633048364 mode=40750 size=512
+RESULT stat "ioprobe/./b.php" ok ino=149034 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/../ioprobe/b.php" ok ino=149034 dev=4402633048364 mode=100640 size=14
+RESULT stat "ioprobe/missing/deeper/x.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/b.php/x" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/a.b.c.d.php" rc=-1 errno=2 no such file or directory
+RESULT stat "ioprobe/vendor/symfony/polyfill-mbstring/bootstrap80.php" rc=-1 errno=2 no such file or directory
+RESULT stat "." ok ino=344441 dev=4402633048364 mode=40750 size=20992
+RESULT stat ".." ok ino=861012 dev=4402633048364 mode=40750 size=512
+RESULT stat "/sys$scratch" ok ino=142089 dev=4402633048064 mode=40755 size=20480
+RESULT stat "/SYS$SYSDEVICE/000000" ok ino=262148 dev=4402633048064 mode=40751 size=2048
+RESULT stat "" rc=-1 errno=2 no such file or directory
+--- r_timer (CRTL defaults)
+RESULT timer_prof no SIGPROF in <signal.h>
+RESULT timer_virtual no SIGVTALRM in <signal.h>
+RESULT timer_real setitimer=0 errno=0
+RESULT timer_real fired=yes after 0 s
+%SYSTEM-F-ACCVIO, access violation, reason mask=04, virtual address=0000000000000011, PC=FFFF8300069503A2, PS=0000001B
+
+  Improperly handled condition, image exit forced.
+    Signal arguments:   Number = 0000000000000005
+                        Name   = 000000000000000C
+                                 0000000000000004
+                                 0000000000000011
+                                 FFFF8300069503A2
+                                 000000000000001B
+    Register dump:
+    RAX = 0000000000000001  RDI = FFFFFFFF63BA7A90  RSI = FFFFFFFF804991F0
+    RDX = 0000000000000000  RCX = FFFFFFFF89C05FDE  R8  = FFFFFFFF631D8000
+    R9  = 000000000000FB29  RBX = 000000007ABF5F00  RBP = 000000007ABF37D0
+    R10 = FFFFFFFFFFFFFFD9  R11 = 0000000000000000  R12 = 000000007ABF3718
+    R13 = 0000000080006000  R14 = 000000007ABF3980  R15 = 000000007ABF4602
+    RIP = FFFF8300069503A2  RSP = 000000007ABF3710  SS  = 000000007FFCDC18
+--- r_timer (feature logicals)
+RESULT timer_prof no SIGPROF in <signal.h>
+RESULT timer_virtual no SIGVTALRM in <signal.h>
+RESULT timer_real setitimer=0 errno=0
+RESULT timer_real fired=yes after 0 s
+%SYSTEM-F-ACCVIO, access violation, reason mask=04, virtual address=0000000000000011, PC=FFFF8300069503A2, PS=0000001B
+
+  Improperly handled condition, image exit forced.
+    Signal arguments:   Number = 0000000000000005
+                        Name   = 000000000000000C
+                                 0000000000000004
+                                 0000000000000011
+                                 FFFF8300069503A2
+                                 000000000000001B
+    Register dump:
+    RAX = 0000000000000001  RDI = FFFFFFFF636681B0  RSI = FFFFFFFF804991F0
+    RDX = 0000000000000000  RCX = FFFFFFFF89C05FDE  R8  = FFFFFFFF631D8000
+    R9  = 00000000000074CE  RBX = 000000007ABF5F00  RBP = 000000007ABF37D0
+    R10 = FFFFFFFFFFFFFFD9  R11 = 0000000000000000  R12 = 000000007ABF3718
+    R13 = 0000000080006000  R14 = 000000007ABF3980  R15 = 000000007ABF4602
+    RIP = FFFF8300069503A2  RSP = 000000007ABF3710  SS  = 000000007FFCDC18
+--- r_zstack (CRTL defaults)
+RESULT stack reached 1 MB
+RESULT stack reached 2 MB
+RESULT stack reached 4 MB
+RESULT stack reached 8 MB
+RESULT stack reached 16 MB
+RESULT stack reached 32 MB
+RESULT stack reached 64 MB
+RESULT stack ok to 64 MB
+--- r_zstack (feature logicals)
+RESULT stack reached 1 MB
+RESULT stack reached 2 MB
+RESULT stack reached 4 MB
+RESULT stack reached 8 MB
+RESULT stack reached 16 MB
+RESULT stack reached 32 MB
+RESULT stack reached 64 MB
+RESULT stack ok to 64 MB
+PROBE-DONE

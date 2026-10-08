@@ -72,3 +72,53 @@ member, exactly as vms-lighttpd's `PHP_POOL.COM` runs PHP today. `proc_open`, `p
 PCSI product PHP (producer ISSINOHO), logical name `VMSPHP$ROOT`, images
 `[BIN]PHP.EXE` and `[BIN]PHP_CGI.EXE`, settings `[ETC]PHP.INI`, `VMSPHP$STARTUP.COM`.
 vms-lighttpd's pool takes the PHP root logical as a setting (`vmslighttpd_php_root`).
+
+## D7. SSL3's 32-bit `long`: a forced-include header for ext/openssl
+
+**Status:** proposed (2026-10-08, Phase 0).
+
+ext/openssl calls 14 `long`-typed SSL3 functions (docs/PHASE0.md). A header force-included
+into ext/openssl's compiles redefines the five `long`-returning ones as sign-extending
+wrappers (`#define BIO_ctrl(...) ((long)(int)BIO_ctrl(...))`, the same for `SSL_ctrl`,
+`SSL_CTX_ctrl`, `SSL_CTX_callback_ctrl`, `SSL_get_verify_result`) and wraps `NCONF_load` /
+`NCONF_get_number_e` with `int`-sized temporaries. `unsigned long` returns and small `long`
+arguments need nothing. Alternatives: patching each call site (24+ places, fragile on
+re-pin); our own OpenSSL built with clang (large; the fallback, as in vms-mariadb D9).
+
+## D8. Entropy for random_bytes(): OpenSSL RAND_bytes
+
+**Status:** proposed (2026-10-08, Phase 0).
+
+VMS has no `getrandom`, `getentropy`, `arc4random` or `/dev/urandom`, and
+`SYS$GET_ENTROPY` is not present on E9.2-4 (`CALLUNDEFSYM`). A patch to
+`ext/random/csprng.c` (`php_random_bytes`) takes bytes from SSL3's `RAND_bytes` on VMS
+(OpenSSL seeds itself from the system). ext/openssl links SSL3 anyway (D3).
+Alternative: a home-made pool from `$GETTIM`/`$GETJPI` values (not cryptographic).
+
+## D9. max_execution_time: ITIMER_REAL / SIGALRM
+
+**Status:** proposed (2026-10-08, Phase 0).
+
+`<signal.h>` has no `SIGPROF`; `setitimer(ITIMER_REAL)` delivers `SIGALRM`. A patch makes
+`zend_set_timeout_ex` use the real-time timer on VMS, as PHP already does on macOS on
+Apple Silicon (wall-clock time, not CPU time, counts towards the limit). The probes showed
+that jumping out of a signal handler ACCVIOs on VMS; PHP's handlers never do (the hard
+timeout writes its message and exits).
+
+## D10. Fibers: Boost.Context's x86-64 SysV routines
+
+**Status:** proposed (2026-10-08, Phase 0).
+
+`Zend/asm/{make,jump}_x86_64_sysv_elf_gas.S` assemble with VSI clang and switch contexts
+correctly under the VMS calling standard (probe `r_fiber`). They reference `_exit` (reached
+only if a fiber's entry function returns); an overlay shim supplies it. Alternative:
+fibers disabled (`Fiber` throws) - not needed.
+
+## D11. C RTL `long` interfaces and process exit codes
+
+**Status:** proposed (2026-10-08, Phase 0).
+
+`%ld`/`%zu` and `strtol` in the C RTL are 32-bit: vms-mariadb's forced-include
+`vms_lp64.h` (D12 there) for all of PHP. `popen`/`system` work, but report DCL's success
+status (1) as exit status 1: `exec()`/`system()`/`passthru()` map a VMS status to 0
+(success, odd) or 1 (failure) on VMS. `proc_open` stays unsupported (no fork; D5).
