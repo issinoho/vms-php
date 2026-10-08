@@ -1,0 +1,37 @@
+Subject: random: random_bytes() from OpenSSL RAND_bytes on OpenVMS
+
+OpenVMS offers none of the sources php_random_bytes_ex() knows:
+getrandom(), getentropy(), arc4random_buf() and /dev/urandom are absent,
+and SYS$GET_ENTROPY links but is not present at run time on E9.2-4
+(vms-php probes r_misc, r_entropy).  Take the bytes from OpenSSL's CSPRNG
+(RAND_bytes, VSI SSL3), which ext/openssl links anyway (DECISIONS D8).
+---
+--- a/ext/random/csprng.c
++++ b/ext/random/csprng.c
+@@ -45,6 +45,11 @@
+ # include <sys/syscall.h>
+ #endif
+ 
++#ifdef __VMS
++# include <limits.h>
++# include <openssl/rand.h>
++#endif
++
+ #ifdef HAVE_SYS_PARAM_H
+ # include <sys/param.h>
+ # if (defined(__FreeBSD__) && __FreeBSD_version > 1200000) || (defined(__DragonFly__) && __DragonFly_version >= 500700) || \
+@@ -74,6 +79,14 @@
+ 		snprintf(errstr, errstr_size, "Failed to retrieve randomness from the operating system (BCryptGenRandom)");
+ 		return FAILURE;
+ 	}
++#elif defined(__VMS)
++	/* OpenVMS has no getrandom(), getentropy(), arc4random() or /dev/urandom,
++	 * and SYS$GET_ENTROPY is not present on E9.2-4: use OpenSSL's CSPRNG (VSI SSL3,
++	 * which ext/openssl links anyway), seeded by OpenSSL from the system. */
++	if (size > INT_MAX || RAND_bytes(bytes, (int) size) != 1) {
++		snprintf(errstr, errstr_size, "Failed to retrieve randomness from OpenSSL (RAND_bytes)");
++		return FAILURE;
++	}
+ #elif defined(HAVE_COMMONCRYPTO_COMMONRANDOM_H)
+ 	/*
+ 	 * Purposely prioritized upon arc4random_buf for modern macOs releases

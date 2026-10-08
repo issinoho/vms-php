@@ -1,0 +1,132 @@
+PROBE compiler CLANG: clang -std=gnu11 -D_LARGEFILE -D_USE_STD_STAT -c
+RESULT g_alloca cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_alphasort cc=2 link=- %CXX-E-ERROR, g_alphasort.c:2:38: error: use of undeclared identifier 'alphasort'
+RESULT g_arc4random_buf cc=2 link=- %CXX-E-ERROR, g_arc4random_buf.c:2:38: error: use of undeclared identifier 'arc4random_buf'
+RESULT g_asctime_r cc=1 link=1
+RESULT g_asprintf cc=1 link=1
+RESULT g_atoll cc=1 link=1
+RESULT g_chroot cc=2 link=- %CXX-E-ERROR, g_chroot.c:2:38: error: use of undeclared identifier 'chroot'
+RESULT g_clock_gettime cc=1 link=1
+RESULT g_copy_file_range cc=2 link=- %CXX-E-ERROR, g_copy_file_range.c:2:38: error: use of undeclared identifier 'copy_file_range'
+RESULT g_ctime_r cc=1 link=1
+RESULT g_dns_search cc=2 link=- %CXX-E-ERROR, g_dns_search.c:2:38: error: use of undeclared identifier 'dns_search'; did you mean 'bsearch'?
+RESULT g_dn_expand cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_dn_skipname cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_elf_aux_info cc=2 link=- %CXX-E-ERROR, g_elf_aux_info.c:2:38: error: use of undeclared identifier 'elf_aux_info'
+RESULT g_explicit_bzero cc=2 link=- %CXX-E-ERROR, g_explicit_bzero.c:2:38: error: use of undeclared identifier 'explicit_bzero'
+RESULT g_explicit_memset cc=2 link=- %CXX-E-ERROR, g_explicit_memset.c:2:38: error: use of undeclared identifier 'explicit_memset'
+RESULT g_fdatasync cc=2 link=- %CXX-E-ERROR, g_fdatasync.c:2:38: error: use of undeclared identifier 'fdatasync'
+RESULT g_flock cc=2 link=- %CXX-E-ERROR, g_flock.c:2:38: error: use of undeclared identifier 'flock'; did you mean 'clock'?
+RESULT g_fopencookie cc=2 link=- %CXX-E-ERROR, g_fopencookie.c:2:38: error: use of undeclared identifier 'fopencookie'
+RESULT g_fork cc=2 link=- %CXX-E-ERROR, g_fork.c:2:38: error: use of undeclared identifier 'fork'; did you mean 'for'? %CXX-E-ERROR, g_fork.c:2:38: error: expected expression
+RESULT g_fpclassify cc=2 link=- %CXX-E-ERROR, g_fpclassify.c:2:38: error: use of undeclared identifier 'fpclassify'
+RESULT g_ftok cc=1 link=1
+RESULT g_funopen cc=2 link=- %CXX-E-ERROR, g_funopen.c:2:38: error: use of undeclared identifier 'funopen'
+RESULT g_gai_strerror cc=1 link=1
+RESULT g_getaddrinfo cc=1 link=1
+RESULT g_getcwd cc=1 link=1
+RESULT g_getentropy cc=2 link=- %CXX-E-ERROR, g_getentropy.c:2:38: error: use of undeclared identifier 'getentropy'
+RESULT g_getgrnam_r cc=2 link=- %CXX-E-ERROR, g_getgrnam_r.c:2:38: error: use of undeclared identifier 'getgrnam_r'; did you mean 'getpwnam_r'?
+RESULT g_gethostname cc=1 link=1
+RESULT g_getloadavg cc=2 link=- %CXX-E-ERROR, g_getloadavg.c:2:38: error: use of undeclared identifier 'getloadavg'
+RESULT g_getopt cc=1 link=1
+RESULT g_getpid cc=1 link=1
+RESULT g_getprotobyname cc=1 link=1
+RESULT g_getprotobynumber cc=1 link=1
+RESULT g_getpwnam_r cc=1 link=1
+RESULT g_getpwuid_r cc=1 link=1
+RESULT g_getrandom cc=2 link=- %CXX-E-ERROR, g_getrandom.c:2:38: error: use of undeclared identifier 'getrandom'
+RESULT g_getrusage cc=1 link=1
+RESULT g_getservbyname cc=1 link=1
+RESULT g_getservbyport cc=1 link=1
+RESULT g_gettid cc=2 link=- %CXX-E-ERROR, g_gettid.c:2:38: error: use of undeclared identifier 'gettid'
+RESULT g_gettimeofday cc=1 link=1
+RESULT g_getwd cc=2 link=- %CXX-E-ERROR, g_getwd.c:2:38: error: use of undeclared identifier 'getwd'
+RESULT g_glob cc=2 link=- %CXX-E-ERROR, g_glob.c:2:38: error: use of undeclared identifier 'glob'
+RESULT g_gmtime_r cc=1 link=1
+RESULT g_inet_ntop cc=1 link=1
+RESULT g_inet_pton cc=1 link=1
+RESULT g_issetugid cc=2 link=- %CXX-E-ERROR, g_issetugid.c:2:38: error: use of undeclared identifier 'issetugid'
+RESULT g_kill cc=1 link=1
+RESULT g_lchown cc=1 link=1
+RESULT g_localtime_r cc=1 link=1
+RESULT g_memcntl cc=2 link=- %CXX-E-ERROR, g_memcntl.c:2:38: error: use of undeclared identifier 'memcntl'
+RESULT g_memfd_create cc=2 link=- %CXX-E-ERROR, g_memfd_create.c:2:38: error: use of undeclared identifier 'memfd_create'
+RESULT g_memmem cc=2 link=- %CXX-E-ERROR, g_memmem.c:2:38: error: use of undeclared identifier 'memmem'; did you mean 'memset'?
+RESULT g_mempcpy cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_memrchr cc=2 link=- %CXX-E-ERROR, g_memrchr.c:2:38: error: use of undeclared identifier 'memrchr'; did you mean 'memchr'?
+RESULT g_memset_explicit cc=2 link=- %CXX-E-ERROR, g_memset_explicit.c:2:38: error: use of undeclared identifier 'memset_explicit'
+RESULT g_mkstemp cc=1 link=1
+RESULT g_mmap cc=1 link=1
+RESULT g_mprotect cc=1 link=1
+RESULT g_mremap cc=2 link=- %CXX-E-ERROR, g_mremap.c:2:38: error: use of undeclared identifier 'mremap'
+RESULT g_m_alloca_builtin cc=1 link=1
+RESULT g_m_asm_goto cc=1 link=1
+RESULT g_m_dlopen cc=1 link=1
+RESULT g_m_fnmatch cc=2 link=- %CXX-F-FATAL, g_m_fnmatch.c:2:10: fatal error: 'fnmatch.h' file not found
+RESULT g_m_gethostbyname_r cc=1 link=1
+RESULT g_m_getifaddrs cc=1 link=1
+RESULT g_m_lchown cc=1 link=1
+RESULT g_m_pread_pwrite cc=1 link=1
+RESULT g_m_sockaddr_storage cc=1 link=1
+RESULT g_m_socklen_t cc=1 link=1
+RESULT g_m_strerror_r_gnu cc=0 link=1
+RESULT g_m_strerror_r_posix cc=1 link=1
+RESULT g_m_struct_flock cc=1 link=1
+RESULT g_m_st_blksize cc=1 link=1
+RESULT g_m_st_blocks cc=1 link=1
+RESULT g_m_st_rdev cc=1 link=1
+RESULT g_m_symlink cc=1 link=1
+RESULT g_m_tm_gmtoff cc=1 link=1
+RESULT g_m_tm_zone cc=1 link=1
+RESULT g_m_utime cc=1 link=1
+RESULT g_nanosleep cc=1 link=1
+RESULT g_nice cc=1 link=1
+RESULT g_nl_langinfo cc=1 link=1
+RESULT g_openpty cc=2 link=- %CXX-E-ERROR, g_openpty.c:2:38: error: use of undeclared identifier 'openpty'
+RESULT g_poll cc=1 link=1
+RESULT g_posix_spawn_file_actions_addchdir_np cc=2 link=- %CXX-E-ERROR, g_posix_spawn_file_actions_addchdir_np.c:2:38: error: use of undeclared identifier 'posix_spawn_file_actions_addchdir_np'
+RESULT g_prctl cc=2 link=- %CXX-E-ERROR, g_prctl.c:2:38: error: use of undeclared identifier 'prctl'; did you mean 'ioctl'?
+RESULT g_pthread_attr_getstack cc=1 link=1
+RESULT g_pthread_attr_get_np cc=2 link=- %CXX-E-ERROR, g_pthread_attr_get_np.c:2:38: error: use of undeclared identifier 'pthread_attr_get_np'
+RESULT g_pthread_getattr_np cc=2 link=- %CXX-E-ERROR, g_pthread_getattr_np.c:2:38: error: use of undeclared identifier 'pthread_getattr_np'; did you mean 'pthread_getname_np'?
+RESULT g_pthread_get_stackaddr_np cc=2 link=- %CXX-E-ERROR, g_pthread_get_stackaddr_np.c:2:38: error: use of undeclared identifier 'pthread_get_stackaddr_np'
+RESULT g_pthread_jit_write_protect_np cc=2 link=- %CXX-E-ERROR, g_pthread_jit_write_protect_np.c:2:38: error: use of undeclared identifier 'pthread_jit_write_protect_np'
+RESULT g_pthread_stackseg_np cc=2 link=- %CXX-E-ERROR, g_pthread_stackseg_np.c:2:38: error: use of undeclared identifier 'pthread_stackseg_np'; did you mean 'pthread_stackovf_e'?
+RESULT g_putenv cc=1 link=1
+RESULT g_reallocarray cc=2 link=- %CXX-E-ERROR, g_reallocarray.c:2:38: error: use of undeclared identifier 'reallocarray'
+RESULT g_realpath cc=1 link=1
+RESULT g_res_ndestroy cc=2 link=- %CXX-E-ERROR, g_res_ndestroy.c:2:38: error: use of undeclared identifier 'res_ndestroy'
+RESULT g_res_nsearch cc=2 link=- %CXX-E-ERROR, g_res_nsearch.c:2:38: error: use of undeclared identifier 'res_nsearch'
+RESULT g_res_search cc=1 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_scandir cc=2 link=- %CXX-E-ERROR, g_scandir.c:2:38: error: use of undeclared identifier 'scandir'
+RESULT g_setenv cc=1 link=1
+RESULT g_setitimer cc=1 link=1
+RESULT g_setproctitle cc=2 link=- %CXX-E-ERROR, g_setproctitle.c:2:38: error: use of undeclared identifier 'setproctitle'
+RESULT g_shm_create_largepage cc=2 link=- %CXX-E-ERROR, g_shm_create_largepage.c:2:38: error: use of undeclared identifier 'shm_create_largepage'
+RESULT g_shutdown cc=1 link=1
+RESULT g_sigaction cc=1 link=1
+RESULT g_sigprocmask cc=1 link=1
+RESULT g_sigsetjmp cc=1 link=1
+RESULT g_socketpair cc=1 link=1
+RESULT g_statfs cc=2 link=- %CXX-E-ERROR, g_statfs.c:2:38: error: use of undeclared identifier 'statfs'; did you mean 'statvfs'?
+RESULT g_statvfs cc=1 link=1
+RESULT g_strcasecmp cc=1 link=1
+RESULT g_strlcat cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_strlcpy cc=0 link=0 %ILINK-W-NUDFSYMS %ILINK-I-UDFSYM %ILINK-W-USEUNDEF
+RESULT g_strnlen cc=1 link=1
+RESULT g_strptime cc=1 link=1
+RESULT g_strtok_r cc=1 link=1
+RESULT g_strtoll cc=1 link=1
+RESULT g_symlink cc=1 link=1
+RESULT g_sys$get_entropy cc=2 link=- %CXX-E-ERROR, g_sys$get_entropy.c:2:38: error: use of undeclared identifier 'sys$get_entropy'
+RESULT g_timegm cc=2 link=- %CXX-E-ERROR, g_timegm.c:2:38: error: use of undeclared identifier 'timegm'
+RESULT g_tzset cc=1 link=1
+RESULT g_unsetenv cc=1 link=1
+RESULT g_usleep cc=1 link=1
+RESULT g_utime cc=1 link=1
+RESULT g_vasprintf cc=1 link=1
+RESULT g__builtins cc=1 link=1
+RESULT g___dns_search cc=2 link=- %CXX-E-ERROR, g___dns_search.c:2:38: error: use of undeclared identifier '__dns_search'
+RESULT g___res_ndestroy cc=2 link=- %CXX-E-ERROR, g___res_ndestroy.c:2:38: error: use of undeclared identifier '__res_ndestroy'
+PROBE-DONE

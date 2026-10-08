@@ -3,4 +3,5 @@
 # sftp_workdir is relative to the sftp login directory, or absolute
 # (/DISK$NAME/dir/sub) for a work directory on another disk (ODS-5).
 # name  arch    host          port  user      vms_workdir                       sftp_workdir
-x86     X86_64  <x86-host>    22    username  DISK$BUILD:[USERNAME.VMS_PHP]     /DISK$BUILD/username/vms_php
+x86     X86_64  <x86-host>    22    username  DISK$BUILD:[USERNAME.VMS_PHP]     /DISK$BUILD/username/vms_php   DISK$BUILD:[USERNAME.VMS_DEPS]
+# 8th column: the work directory holding the dependencies (vms-zlib, vms-pcre2, vms-libxml2 clang trees)
