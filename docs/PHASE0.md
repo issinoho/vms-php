@@ -85,4 +85,29 @@ returns and passes `int`-sized temporaries for the two `long *` results.
 
 ## Baseline: the current PHP 8.1.23 kit under phpBB
 
-(see below; filled in by the baseline run)
+vms-lighttpd's Phase 4 test board on x86 (`serve.sh x86 phpbbsetup`, server on :18080), with
+the PHP 8.1.23 `PHP_ROOT` kit in a test pool of 4 on 19100-19103 (`POOL_BASE`; the live
+board's pool on 19000-19003 was not touched), loaded with `SOAK_PHPBB=1 tools/soak.sh x86 30 4`
+(guest pages: index, forum, topic, search, login form, FAQ, member list), 2026-10-08:
+
+| Measure | PHP 8.1.23 (third-party kit) |
+|---|---|
+| Requests in 30 min (4 workers) | 1,409 |
+| 200 / 500 | 1,405 / **4** |
+| Page time, mean / max | 5.0 s / 18.5 s (first pages per process: 1.3-4.2 s warm-up) |
+| PHP process crashes | **4**, every 500: `%SYSTEM-F-ACCVIO` at VA `8000000000000000` |
+| - in `mysqlnd_conn_data::connect_handshake` (mysqli connect) | 1 |
+| - in DECC$SHR `F_FINDFILE`/`F_MISC` under `php_stat` / `file_exists` / phar's interceptor | 3 |
+| lighttpd server process | steady (8.0 -> 9.1 MB in the first 10 minutes, then flat) |
+
+So the kit's crash rate under phpBB is about 1 in 350 requests, and both signatures seen on
+the live board reproduce on the test board. This run is the acceptance baseline (plan Phase
+4): our PHP must serve at least as many requests with no crash, and page times are compared
+against it.
+
+## Phase 0 exit
+
+- Release pinned and verified; reference build on the host; probe results above.
+- Decisions D0-D6 approved; **D7-D11 proposed** (docs/DECISIONS.md) from these results.
+- Next (Phase 1): the vms-zlib clang variant, vms-libxml2 (new repository), the
+  configure answers and `php_config.h`, the patches above, `BUILD.COM`.
