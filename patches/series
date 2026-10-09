@@ -4,3 +4,4 @@
 0004-cli-flush-records-vms.patch
 0005-opcache-lockfile-default-vms.patch
 0006-zend-fiber-stack-32bit-vms.patch
+0007-temp-dir-sys-scratch-vms.patch

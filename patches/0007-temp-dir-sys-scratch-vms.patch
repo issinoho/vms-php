@@ -1,0 +1,26 @@
+Subject: main: the default temporary directory is /sys$scratch on OpenVMS
+
+With TMPDIR unset, sys_get_temp_dir() falls back to P_tmpdir, which the
+OpenVMS C RTL defines as "SYS$SCRATCH:", a VMS device specification.
+PHP joins it to file names with '/', so session files became
+"SYS$SCRATCH:/sess_..." and open() failed with ENOENT: 159 session tests
+and the file tests that use tempnam() (vms-php PORTING_LOG #25).  On VMS
+default to "/sys$scratch", the same directory in UNIX syntax (as patch
+0005 does for opcache's lock file).  TMPDIR and sys_temp_dir still take
+precedence.
+---
+--- a/main/php_open_temporary_file.c
++++ b/main/php_open_temporary_file.c
+@@ -295,6 +295,12 @@
+ 			return PG(php_sys_temp_dir);
+ 		}
+ 	}
++#ifdef __VMS
++	/* The C RTL's P_tmpdir is "SYS$SCRATCH:", a VMS device spec that PHP
++	 * would join to names with '/': use its UNIX form. */
++	PG(php_sys_temp_dir) = estrdup("/sys$scratch");
++	return PG(php_sys_temp_dir);
++#endif
+ #ifdef P_tmpdir
+ 	/* Use the standard default temporary directory. */
+ 	if (P_tmpdir) {
