@@ -115,7 +115,8 @@ $! VSI clang lowers memset() to OTS$FILL but, treating it as memset, assumes it
 $! returns its destination: "memset(p, 0, n); return p;" became a tail call
 $! whose result is whatever OTS$FILL leaves in RAX (Zend's _ecalloc returned
 $! live blocks; PORTING_LOG).  Explicit memset() calls stay real C RTL calls.
-$ write r "-fno-builtin-memset"
+$! bzero() is lowered the same way (probes/r_calloc_shape.c), so it too.
+$ write r "-fno-builtin-memset -fno-builtin-bzero"
 $ write r "-include vmsport/include/vms_lp64.h"
 $ write r "-include vmsport/include/vms_php_compat.h"
 $! standard headers the C RTL lacks: stdalign.h, search.h, syslog.h
@@ -294,7 +295,6 @@ $ write o "LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY"
 $ write o "ZLIB$ROOT:[LIB]LIBZ.OLB/LIBRARY"
 $ write o "SYS$SHARE:SSL3$LIBSSL_SHR/SHAREABLE"
 $ write o "SYS$SHARE:SSL3$LIBCRYPTO_SHR/SHAREABLE"
-$ write o "PSECT_ATTR=LIB$INITIALIZE,CON,REL,GBL,NOSHR,NOEXE,RD,NOWRT"
 $ close o
 $ write sys$output "BUILD: link ''obj'''image'.EXE"
 $ define/user sys$error sys$output

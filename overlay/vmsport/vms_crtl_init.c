@@ -1,15 +1,15 @@
 /*
   vms_crtl_init.c - C RTL features for the PHP images on OpenVMS.
 
-  Linked into PHP.EXE and PHP_CGI.EXE (vmsport/BUILD.COM).  A LIB$INITIALIZE
-  routine sets these DECC$ features before main() runs, unless the user has
-  defined the feature's logical name, which then wins.  They are set inside
-  the images rather than as process logical names because they change how
-  every C RTL program in the process behaves (vms-mariadb D6).
+  Linked into PHP.EXE and PHP_CGI.EXE (vmsport/BUILD.COM).  A constructor
+  sets these DECC$ features before main() runs, unless the user has defined
+  the feature's logical name, which then wins.  They are set inside the
+  images rather than as process logical names because they change how every
+  C RTL program in the process behaves (vms-mariadb D6).
 
-  The section needs the system's LIB$INITIALIZE attributes, which clang does
-  not produce for a relocated pointer: BUILD.COM's options files add
-  PSECT_ATTR=LIB$INITIALIZE,CON,REL,GBL,NOSHR,NOEXE,RD,NOWRT.
+  Not a LIB$INITIALIZE psect entry (vms-mariadb's pattern): with VSI clang on
+  x86-64 such an entry is linked but never called (probes r_libinit, r_ctor;
+  PORTING_LOG #22).  clang puts constructors in .init_array, which runs.
 */
 #include <stdlib.h>
 #include <unixlib.h>
@@ -38,7 +38,7 @@ static const struct
   { NULL, 0 }
 };
 
-static void vms_crtl_init(void)
+__attribute__((constructor)) static void vms_crtl_init(void)
 {
   int i, idx;
   for (i = 0; vms_features[i].name; i++)
@@ -49,10 +49,3 @@ static void vms_crtl_init(void)
       decc$feature_set_value(idx, 1, vms_features[i].value);
   }
 }
-
-__attribute__((used, section("LIB$INITIALIZE")))
-void (*const vms_crtl_init_ptr)(void) = vms_crtl_init;
-
-/* Pull in the LIB$INITIALIZE dispatcher. */
-int LIB$INITIALIZE(void);
-int (*vms_crtl_init_lib_ref)(void) = LIB$INITIALIZE;
