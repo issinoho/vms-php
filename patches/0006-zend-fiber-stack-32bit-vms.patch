@@ -1,0 +1,89 @@
+Subject: Zend fibers: allocate fiber stacks in 32-bit address space on OpenVMS
+
+Every test that starts a Fiber (and the generator tests that use one)
+died with %SYSTEM-F-STKOVF in a resident system-space image as soon as
+the fiber called into the C RTL (vms-php PORTING_LOG #23).  Probe
+probes/r_fiber_stack.c: even sprintf() on an mmap'd or malloc'd stack
+fails, with RSP moved to the process's 32-bit (P1) stack while the
+arguments are still on the fiber stack above 2 GB.  SYS$GETTIM, malloc
+and a 64 KB frame are fine, and so is a stack in 32-bit address space
+(alloca on the main stack, or _malloc32): the C RTL relocates to its
+32-bit stack when the stack pointer is no valid 32-bit address.  On VMS
+take the fiber stack from _malloc32, page-aligned, with the same guard
+page, and make the guard writable again before freeing it.
+---
+--- a/Zend/zend_fibers.c
++++ b/Zend/zend_fibers.c
+@@ -59,6 +59,13 @@
+ #  define MAP_STACK 0
+ # endif
+ 
++# ifdef __VMS
++/* C RTL routines called with the stack pointer above 2 GB move to the
++ * process's 32-bit stack and fail there (%SYSTEM-F-STKOVF or ACCVIO), so
++ * fiber stacks come from 32-bit address space. */
++void *_malloc32(size_t size);
++# endif
++
+ # ifndef MAP_FAILED
+ #  define MAP_FAILED ((void * ) -1)
+ # endif
+@@ -93,6 +100,11 @@
+ 	size_t asan_size;
+ #endif
+ 
++#ifdef __VMS
++	/* the _malloc32 block the stack was carved from */
++	void *vms_block;
++#endif
++
+ #ifdef ZEND_FIBER_UCONTEXT
+ 	/* Embedded ucontext to avoid unnecessary memory allocations. */
+ 	ucontext_t ucontext;
+@@ -245,6 +257,23 @@
+ 		return NULL;
+ 	}
+ # endif
++#elif defined(__VMS)
++	void *vms_block = _malloc32(alloc_size + page_size);
++
++	if (!vms_block) {
++		zend_throw_exception_ex(NULL, 0, "Fiber stack allocate failed: _malloc32 failed: %s (%d)", strerror(errno), errno);
++		return NULL;
++	}
++
++	pointer = (void *) (((uintptr_t) vms_block + page_size - 1) & ~(uintptr_t) (page_size - 1));
++
++# if ZEND_FIBER_GUARD_PAGES
++	if (mprotect(pointer, ZEND_FIBER_GUARD_PAGES * page_size, PROT_NONE) < 0) {
++		zend_throw_exception_ex(NULL, 0, "Fiber stack protect failed: mprotect failed: %s (%d)", strerror(errno), errno);
++		free(vms_block);
++		return NULL;
++	}
++# endif
+ #else
+ 	pointer = mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
+ 
+@@ -274,6 +303,9 @@
+ 
+ 	stack->pointer = (void *) ((uintptr_t) pointer + ZEND_FIBER_GUARD_PAGES * page_size);
+ 	stack->size = stack_size;
++#ifdef __VMS
++	stack->vms_block = vms_block;
++#endif
+ 
+ #if !defined(ZEND_FIBER_UCONTEXT) && BOOST_CONTEXT_SHADOW_STACK
+ 	/* shadow stack saves ret address only, need less space */
+@@ -323,6 +355,12 @@
+ 
+ #ifdef ZEND_WIN32
+ 	VirtualFree(pointer, 0, MEM_RELEASE);
++#elif defined(__VMS)
++# if ZEND_FIBER_GUARD_PAGES
++	/* the heap reuses the block: make the guard pages writable again */
++	mprotect(pointer, ZEND_FIBER_GUARD_PAGES * page_size, PROT_READ | PROT_WRITE);
++# endif
++	free(stack->vms_block);
+ #else
+ 	munmap(pointer, stack->size + ZEND_FIBER_GUARD_PAGES * page_size);
+ #endif

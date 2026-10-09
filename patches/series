@@ -3,3 +3,4 @@
 0003-environ-32bit-pointers-vms.patch
 0004-cli-flush-records-vms.patch
 0005-opcache-lockfile-default-vms.patch
+0006-zend-fiber-stack-32bit-vms.patch
