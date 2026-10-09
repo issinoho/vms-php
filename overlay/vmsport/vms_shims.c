@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 
@@ -61,6 +62,33 @@ const struct in6_addr in6addr_any = { { { 0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0 } } };
 const struct in6_addr in6addr_loopback = { { { 0, 0, 0, 0, 0, 0, 0, 0,
                                                0, 0, 0, 0, 0, 0, 0, 1 } } };
+
+/* environ: the C RTL's is a 32-bit pointer to an array of 32-bit pointers
+   (probe r_environ), which 64-bit code cannot walk as char **.  Patch 0003
+   makes main/php.h's environ a call to this: a 64-bit, NULL-terminated copy,
+   rebuilt on every call because putenv() can change the array. */
+extern unsigned int environ;
+
+char **vms_php_environ(void)
+{
+  static char **copy;
+  static size_t cap;
+  unsigned int *e = (unsigned int *) (uintptr_t) environ;
+  size_t n = 0, i;
+  while (e && e[n])
+    n++;
+  if (n + 1 > cap) {
+    char **c = realloc(copy, (n + 1) * sizeof *c);
+    if (!c)
+      return NULL;
+    copy = c;
+    cap = n + 1;
+  }
+  for (i = 0; i < n; i++)
+    copy[i] = (char *) (uintptr_t) e[i];
+  copy[n] = NULL;
+  return copy;
+}
 
 /* Boost.Context's make_fcontext calls _exit if a fiber's entry function
    returns; vms_fiber_exit.S defines _exit and jumps here (D10). */

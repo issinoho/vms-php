@@ -1,2 +1,5 @@
 0001-zend-timeout-itimer-real-vms.patch
 0002-random-bytes-openssl-vms.patch
+0003-environ-32bit-pointers-vms.patch
+0004-cli-flush-records-vms.patch
+0005-opcache-lockfile-default-vms.patch

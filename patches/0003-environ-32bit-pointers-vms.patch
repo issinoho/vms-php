@@ -1,0 +1,27 @@
+Subject: main: read the 32-bit environ through a 64-bit copy on OpenVMS
+
+PHP declares "extern char **environ" and walks it for $_ENV, $_SERVER,
+getenv() and phpinfo().  With clang's 64-bit pointers on OpenVMS that is
+wrong twice over: the C RTL's environ is a 32-bit pointer to an array of
+32-bit pointers (vms-php probe r_environ), so PHP read a pointer with junk
+in its upper half and PHP.EXE ACCVIOed before running any script.  On VMS,
+environ becomes a call returning a 64-bit, NULL-terminated copy.
+---
+--- a/main/php.h
++++ b/main/php.h
+@@ -262,7 +262,15 @@
+ /* global variables */
+ #ifndef PHP_WIN32
+ #define php_sleep sleep
++#ifdef __VMS
++/* The C RTL's environ is a 32-bit pointer to an array of 32-bit pointers,
++ * which 64-bit code cannot walk as char **: read it through a 64-bit copy
++ * (vmsport/vms_shims.c in vms-php). */
++char **vms_php_environ(void);
++#define environ vms_php_environ()
++#else
+ extern char **environ;
++#endif
+ #endif	/* ifndef PHP_WIN32 */
+ 
+ extern const char php_build_date[];

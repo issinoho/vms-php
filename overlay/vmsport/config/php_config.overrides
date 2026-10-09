@@ -32,7 +32,7 @@ ZEND_MM_NEED_EIGHT_BYTE_REALIGNMENT =
 DEFAULT_SHORT_OPEN_TAG =
 PHP_SIGCHILD =
 PHP_USE_PHP_CRYPT_R =                 # PHP's bundled crypt
-PHP_WRITE_STDOUT =
+PHP_WRITE_STDOUT -                    # the CLI then writes through stdio: VMS makes every write() to SYS$OUTPUT a record, so var_dump's pieces came out on separate lines
 PCRE2_CODE_UNIT_WIDTH =
 URI_ENABLE_ANSI =
 URI_NO_UNICODE =
@@ -107,7 +107,7 @@ PHP_HAVE_AVX512_SUPPORTS -            # AVX-512 paths need the above
 PHP_HAVE_AVX512_VBMI_SUPPORTS -
 HAVE_GCC_GLOBAL_REGS -                # global register variables (HYBRID VM fast path): not in clang
 HAVE_HUGE_CODE_PAGES -                # Linux madvise/mremap of the text segment
-HAVE_LIBDL -                          # extensions are static; no dl() (D3)
+HAVE_LIBDL =                          # dlopen() links (g_m_dlopen); without it ZEND_EXTENSIONS_SUPPORT is 0 and the built-in opcache's Zend-extension startup never runs (PORTING_LOG); dl() itself stays off by ini (enable_dl)
 HAVE_SHM_IPC -                        # System V shm for opcache: use the anonymous mmap (r_mem)
 HAVE_SHM_MMAP_POSIX -                 # shm_open: not used
 HAVE_SHM_MMAP_ANON =                  # MAP_SHARED|MAP_ANON 128-512 MB works (r_mem)

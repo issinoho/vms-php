@@ -96,7 +96,14 @@ $unix_done:
 $ rsp = "[.VMSPORT.BUILD]CLANG.RSP"
 $ create/fdl="RECORD; FORMAT STREAM_LF;" 'rsp'
 $ open/append r 'rsp'
-$ write r "-std=gnu11 -O2 -w -fno-common -ffp-contract=off"
+$! VMSPHP_DEBUG defined: -g, so tracebacks show source lines for whatever is
+$! compiled in that run (delete the objects to look at first)
+$ dbg = ""
+$ if f$trnlnm("VMSPHP_DEBUG") .nes. "" then dbg = " -g"
+$! -w silences clang's (many) warnings, and would override CHECK's -W flags
+$ quiet = " -w"
+$ if target .eqs. "CHECK" then quiet = " -Wno-everything"
+$ write r "-std=gnu11 -O2''quiet' -fno-common -ffp-contract=off''dbg'"
 $ write r "-names2=shortened -pointer-size=argv64"
 $ write r "-D__GNUC__=4 -D__GNUC_MINOR__=2 -D__GNUC_PATCHLEVEL__=1"
 $ write r "-D_LARGEFILE -D_USE_STD_STAT -D_POSIX_EXIT -D_PTHREAD_EXC_INCL_CLEAN -DNDEBUG"
@@ -104,6 +111,11 @@ $! clang predefines __SSE2__, but VSI ships no x86 intrinsics headers
 $! (<emmintrin.h>): PHP's SSE2 paths are left out; floating point still
 $! uses the SSE registers (the calling standard is unchanged)
 $ write r "-U__SSE2__"
+$! VSI clang lowers memset() to OTS$FILL but, treating it as memset, assumes it
+$! returns its destination: "memset(p, 0, n); return p;" became a tail call
+$! whose result is whatever OTS$FILL leaves in RAX (Zend's _ecalloc returned
+$! live blocks; PORTING_LOG).  Explicit memset() calls stay real C RTL calls.
+$ write r "-fno-builtin-memset"
 $ write r "-include vmsport/include/vms_lp64.h"
 $ write r "-include vmsport/include/vms_php_compat.h"
 $! standard headers the C RTL lacks: stdalign.h, search.h, syslog.h
@@ -119,6 +131,8 @@ $ close r
 $ purge/nolog 'rsp'
 $ rspunix = unix + "/vmsport/build/clang.rsp"
 $ if target .eqs. "LINK" then goto link
+$ if target .eqs. "CHECK" then goto check
+$ if target .eqs. "LAYOUT" then goto layout
 $!
 $! --- compile
 $ failed = 0
@@ -178,6 +192,52 @@ $done:
 $ if f$trnlnm("OPENSSL", "LNM$PROCESS") .nes. "" then deassign/process openssl
 $ set default 'saved_default'
 $ exit status
+$!
+$! CHECK: every source through clang -fsyntax-only with the warnings that
+$! matter for 64-bit pointers against a C RTL with 32-bit interfaces: an
+$! undeclared function is assumed to return int, which truncates a pointer
+$! from the 64-bit heap.  Lines tagged "BUILD: CHECK" name the source.
+$check:
+$ open/read lst [.VMSPORT.BUILD]OBJECTS.TXT
+$check_loop:
+$ read/end=check_done lst line
+$ src = f$element(2, " ", line)
+$ vsrc = f$element(3, " ", line)
+$ if f$edit(f$parse(vsrc,,,"TYPE"), "UPCASE") .eqs. ".S" then goto check_loop
+$ flags = f$extract(f$length(f$element(0, " ", line)) + f$length(f$element(1, " ", line)) + -
+    f$length(src) + f$length(vsrc) + 4, 2048, line)
+$ write sys$output "BUILD: CHECK ''src'"
+$ define/user sys$error sys$output
+$ clang "@''rspunix'" -Wimplicit-function-declaration -Wint-conversion -Wint-to-pointer-cast -Wpointer-to-int-cast -Wincompatible-pointer-types 'flags' -fsyntax-only 'src'
+$ goto check_loop
+$check_done:
+$ close lst
+$ status = 1
+$ goto finish
+$!
+$! LAYOUT: every source's struct layouts (clang -fdump-record-layouts-simple)
+$! into [.LAYOUT]<object>.LAY, for tools/layout_check.py: a struct laid out
+$! differently in two sources means memory overwritten across them.
+$layout:
+$ if f$search("LAYOUT.DIR") .eqs. "" then create/directory [.LAYOUT]
+$ if f$search("[.LAYOUT]*.*") .nes. "" then delete/nolog [.LAYOUT]*.*;*
+$ open/read lst [.VMSPORT.BUILD]OBJECTS.TXT
+$layout_loop:
+$ read/end=layout_done lst line
+$ name = f$element(1, " ", line)
+$ src = f$element(2, " ", line)
+$ vsrc = f$element(3, " ", line)
+$ if f$edit(f$parse(vsrc,,,"TYPE"), "UPCASE") .eqs. ".S" then goto layout_loop
+$ flags = f$extract(f$length(f$element(0, " ", line)) + f$length(name) + -
+    f$length(src) + f$length(vsrc) + 4, 2048, line)
+$ define/user sys$error nl:
+$ pipe clang "@''rspunix'" 'flags' -Xclang -fdump-record-layouts-simple -fsyntax-only 'src' > [.LAYOUT]'name'.LAY
+$ goto layout_loop
+$layout_done:
+$ close lst
+$ write sys$output "BUILD: layouts in [.LAYOUT]"
+$ status = 1
+$ goto finish
 $!
 $! compile src into obj name, unless the object is newer than the source
 $compile_one:

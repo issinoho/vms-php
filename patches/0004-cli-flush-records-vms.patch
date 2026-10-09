@@ -1,0 +1,24 @@
+Subject: cli: leave flushing stdout to stdio on OpenVMS
+
+The CLI SAPI flushes stdout after every piece of output (implicit_flush is
+always on in the CLI).  On OpenVMS each fflush() of SYS$OUTPUT ends a
+record, so `var_dump("UTC")` printed `string(3) "`, `UTC` and `"` on three
+lines (vms-php PORTING_LOG #19, #20).  On VMS the flush handler leaves it
+to stdio, which ends records at newlines and flushes at exit.
+---
+--- a/sapi/cli/php_cli.c
++++ b/sapi/cli/php_cli.c
+@@ -299,6 +299,13 @@
+ 
+ static void sapi_cli_flush(void *server_context) /* {{{ */
+ {
++#ifdef __VMS
++	/* Every fflush() of SYS$OUTPUT ends a record on OpenVMS, and the CLI flushes
++	 * after each piece of output (implicit_flush), so var_dump()'s pieces came
++	 * out as separate lines.  stdio ends records at newlines and flushes at
++	 * exit, so leave it to stdio. */
++	return;
++#endif
+ 	/* Ignore EBADF here, it's caused by the fact that STDIN/STDOUT/STDERR streams
+ 	 * are/could be closed before fflush() is called.
+ 	 */

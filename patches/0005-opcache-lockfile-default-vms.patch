@@ -1,0 +1,42 @@
+Subject: opcache: lock file in /sys$scratch with a VMS-safe name on OpenVMS
+
+opcache creates its lock file in opcache.lockfile_path, "/tmp" by default,
+named ".ZendSem.XXXXXX".  OpenVMS has no /tmp, so PHP_CGI.EXE stopped with
+"Unable to create opcache lock file in /tmp", and the name, a leading dot
+and several more, is no valid VMS file name: the lock file could not be
+created in /sys$scratch either, an ODS-5 directory (vms-php PORTING_LOG
+#20).  On VMS default to /sys$scratch, the process's scratch directory (as
+vms-lighttpd does for its temporary files), and name the file
+"ZendSem_XXXXXX".
+---
+--- a/ext/opcache/zend_accelerator_module.c
++++ b/ext/opcache/zend_accelerator_module.c
+@@ -326,7 +326,12 @@
+ 	STD_PHP_INI_ENTRY("opcache.restrict_api"             , ""    , PHP_INI_SYSTEM, OnUpdateString,	         accel_directives.restrict_api,              zend_accel_globals, accel_globals)
+ 
+ #ifndef ZEND_WIN32
++#ifdef __VMS
++	/* no /tmp on OpenVMS: SYS$SCRATCH, the process's scratch directory */
++	STD_PHP_INI_ENTRY("opcache.lockfile_path"             , "/sys$scratch", PHP_INI_SYSTEM, OnUpdateString,       accel_directives.lockfile_path,              zend_accel_globals, accel_globals)
++#else
+ 	STD_PHP_INI_ENTRY("opcache.lockfile_path"             , "/tmp"    , PHP_INI_SYSTEM, OnUpdateString,           accel_directives.lockfile_path,              zend_accel_globals, accel_globals)
++#endif
+ #else
+ 	STD_PHP_INI_ENTRY("opcache.mmap_base", NULL, PHP_INI_SYSTEM,	OnUpdateString,	                             accel_directives.mmap_base,                 zend_accel_globals, accel_globals)
+ #endif
+--- a/ext/opcache/zend_shared_alloc.c
++++ b/ext/opcache/zend_shared_alloc.c
+@@ -44,7 +44,13 @@
+ # include "sys/mman.h"
+ #endif
+ 
++#ifdef __VMS
++/* a leading dot and several more make no valid VMS file name: the lock file
++   could not be created even on an ODS-5 disk */
++#define SEM_FILENAME_PREFIX "ZendSem_"
++#else
+ #define SEM_FILENAME_PREFIX ".ZendSem."
++#endif
+ #define S_H(s) g_shared_alloc_handler->s
+ 
+ /* True globals */
