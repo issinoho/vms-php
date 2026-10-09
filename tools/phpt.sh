@@ -24,17 +24,32 @@ fi
 manifest=$top/cache/pushed-phpt-$set_-$node.sha
 touch "$manifest"
 (cd "$top/cache/phpt" && find "$set_" -type f -print0 | sort -z | xargs -0 sha256sum) > "$manifest.new"
-changed=$(comm -23 <(awk '{print $2" "$1}' "$manifest.new" | sort) <(awk '{print $2" "$1}' "$manifest" | sort) | awk '{print $1}')
+# file names may contain spaces (ext/dom/tests/modern/xml/test foo.xml): the
+# path is everything after sha256sum's 64-digit hash and two spaces, and every
+# sftp path is quoted (an unquoted one aborted the batch, so the rest of the set
+# was never sent)
+changed=$(comm -23 <(sort "$manifest.new") <(sort "$manifest") | cut -c67-)
 batch=$top/cache/phpt-$set_.sftp
 {
     echo "cd $SFTPDIR"
     echo "-mkdir phpt"
-    (cd "$top/cache/phpt" && find "$set_" -type d) | sed 's|^|-mkdir phpt/|'
-    for f in $changed; do echo "put $top/cache/phpt/$f phpt/$f"; done
+    (cd "$top/cache/phpt" && find "$set_" -type d) | sed 's|^\(.*\)$|-mkdir "phpt/\1"|'
+    while IFS= read -r f; do
+        [ -n "$f" ] && printf 'put "%s" "%s"\n' "$top/cache/phpt/$f" "phpt/$f"
+    done <<< "$changed"
 } > "$batch"
 echo "phpt: uploading $(echo "$changed" | grep -c . || true) files"
+# record the upload only if sftp finished the batch: otherwise the next run
+# would take the unsent files for sent
+rc=0
 sftp -P "$PORT" -i "${VMS_SSH_KEY:-$HOME/.ssh/vms_ed25519}" -o BatchMode=yes -b "$batch" "$USER@$HOST" \
-    2>&1 >/dev/null | grep -vE '^ *Welcome to|^ *$|^remote mkdir .*Failure' >&2 || true
+    2>"$batch.err" >/dev/null || rc=$?
+grep -vE '^ *Welcome to|^ *$|^remote mkdir .*Failure' "$batch.err" >&2 || true
+if [ "$rc" -ne 0 ]; then
+    rm -f "$manifest.new"
+    echo "phpt: upload failed; nothing recorded as sent" >&2
+    exit 1
+fi
 mv "$manifest.new" "$manifest"
 
 remote=$(echo "$UPSTREAM_NAME-$UPSTREAM_VERSION" | tr . _ | tr a-z A-Z)
