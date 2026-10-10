@@ -14,3 +14,4 @@
 0014-standard-fflush-fsync-vms.patch
 0015-streams-fopen-truncate-in-place-vms.patch
 0016-openssl-export-to-file-empty-dir-vms.patch
+0017-ctype-c-locale-ascii-vms.patch

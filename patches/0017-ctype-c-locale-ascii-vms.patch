@@ -1,0 +1,92 @@
+Subject: ctype: ASCII classes in the "C" locale on OpenVMS
+
+The OpenVMS C RTL's "C" locale classifies 128..255 as DEC Multinational
+characters: 132..135 are control characters, 161.. printable and
+punctuation, and the letters among them alphabetic.  The POSIX "C"
+locale is ASCII, so on VMS ctype_alpha() and the rest were true for the
+bytes of UTF-8 text, where on Linux they are false (5 ctype tests;
+vms-php PORTING_LOG #46).  On VMS, while LC_CTYPE is "C" (PHP keeps
+BG(ctype_string) NULL for it), bytes over 127 are in no class.  Under a
+locale the script set, the C RTL still decides.
+---
+--- a/ext/ctype/ctype.c
++++ b/ext/ctype/ctype.c
+@@ -25,6 +25,17 @@
+ 
+ #include <ctype.h>
+ 
++#ifdef __VMS
++#include "ext/standard/basic_functions.h"
++/* The OpenVMS C RTL's "C" locale classifies 128..255 as DEC Multinational
++ * characters (132 is a control character, 161 punctuation...), where the
++ * POSIX "C" locale is ASCII: ctype_alpha() and the rest were true for the
++ * bytes of UTF-8 text (vms-php PORTING_LOG #46).  In the "C" locale
++ * (BG(ctype_string) is NULL) bytes over 127 are in no class; in a locale
++ * the script set, the C RTL decides. */
++# define PHP_CTYPE_VMS_HIGH(ch) ((ch) > 127 && BG(ctype_string) == NULL)
++#endif
++
+ #ifdef HAVE_CTYPE
+ 
+ static PHP_MINFO_FUNCTION(ctype);
+@@ -66,8 +77,18 @@
+ 		"Argument of type %s will be interpreted as string in the future", zend_zval_type_name(c));
+ 	if (Z_TYPE_P(c) == IS_LONG) {
+ 		if (Z_LVAL_P(c) <= 255 && Z_LVAL_P(c) >= 0) {
++#ifdef __VMS
++			if (PHP_CTYPE_VMS_HIGH(Z_LVAL_P(c))) {
++				RETURN_FALSE;
++			}
++#endif
+ 			RETURN_BOOL(iswhat((int)Z_LVAL_P(c)));
+ 		} else if (Z_LVAL_P(c) >= -128 && Z_LVAL_P(c) < 0) {
++#ifdef __VMS
++			if (PHP_CTYPE_VMS_HIGH(Z_LVAL_P(c) + 256)) {
++				RETURN_FALSE;
++			}
++#endif
+ 			RETURN_BOOL(iswhat((int)Z_LVAL_P(c) + 256));
+ 		} else if (Z_LVAL_P(c) >= 0) {
+ 			RETURN_BOOL(allow_digits);
+@@ -79,6 +100,33 @@
+ 	}
+ }
+ 
++#ifdef __VMS
++/* Define as a macro such that iswhat can use the macro version instead of the function version.
++ * This heavily reduces the overhead. (GH-11997) */
++#define ctype_impl(iswhat, allow_digits, allow_minus) do { 					\
++		zval *c;															\
++																			\
++		ZEND_PARSE_PARAMETERS_START(1, 1);									\
++			Z_PARAM_ZVAL(c)													\
++		ZEND_PARSE_PARAMETERS_END();										\
++																			\
++		if (Z_TYPE_P(c) == IS_STRING) {										\
++			char *p = Z_STRVAL_P(c), *e = Z_STRVAL_P(c) + Z_STRLEN_P(c);	\
++			if (e == p) {													\
++				RETURN_FALSE;												\
++			}																\
++			while (p < e) {													\
++				int ch_ = *(unsigned char *)(p++);							\
++				if (PHP_CTYPE_VMS_HIGH(ch_) || !iswhat(ch_)) {				\
++					RETURN_FALSE;											\
++				}															\
++			}																\
++			RETURN_TRUE;													\
++		}																	\
++																			\
++		ctype_fallback(c, return_value, iswhat, allow_digits, allow_minus);	\
++	} while (0);
++#else
+ /* Define as a macro such that iswhat can use the macro version instead of the function version.
+  * This heavily reduces the overhead. (GH-11997) */
+ #define ctype_impl(iswhat, allow_digits, allow_minus) do { 					\
+@@ -103,6 +151,7 @@
+ 																			\
+ 		ctype_fallback(c, return_value, iswhat, allow_digits, allow_minus);	\
+ 	} while (0);
++#endif
+ 
+ /* {{{ Checks for alphanumeric character(s) */
+ PHP_FUNCTION(ctype_alnum)
