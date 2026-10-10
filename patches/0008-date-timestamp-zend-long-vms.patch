@@ -1,0 +1,62 @@
+Subject: date: php_format_date() and php_idate() take a zend_long timestamp on OpenVMS
+
+date(), idate() and DateTimeZone::getTransitions() hold the timestamp as a
+zend_long and timelib is 64-bit throughout, but php_format_date() and
+php_idate() take it as time_t, which on OpenVMS is the C RTL's 32-bit
+unsigned type.  Every timestamp before 1970 came out 2^32 seconds later:
+date("m/d/Y", -2145888000) was 02/06/2038, not 01/01/1902, and the
+1960s time zone transitions were in 2099 (5 date tests, vms-php
+PORTING_LOG #30).  On VMS the parameter is a zend_long (PHP_DATE_TS_T);
+callers passing a time_t convert implicitly, as before.
+---
+--- a/ext/date/php_date.h
++++ b/ext/date/php_date.h
+@@ -129,17 +129,26 @@
+ 
+ #define DATEG(v) ZEND_MODULE_GLOBALS_ACCESSOR(date, v)
+ 
++/* The timestamps php_idate() and php_format_date() take.  OpenVMS's time_t
++ * is a 32-bit unsigned type, which made every timestamp before 1970 one
++ * 2^32 seconds later: there they are zend_long, as timelib's are 64-bit. */
++#ifdef __VMS
++# define PHP_DATE_TS_T zend_long
++#else
++# define PHP_DATE_TS_T time_t
++#endif
++
+ PHPAPI time_t php_time(void);
+ 
+ /* Backwards compatibility wrapper */
+ PHPAPI zend_long php_parse_date(const char *string, zend_long *now);
+ PHPAPI void php_mktime(INTERNAL_FUNCTION_PARAMETERS, bool gmt);
+-PHPAPI int php_idate(char format, time_t ts, bool localtime);
++PHPAPI int php_idate(char format, PHP_DATE_TS_T ts, bool localtime);
+ 
+ #define _php_strftime php_strftime
+ 
+ PHPAPI void php_strftime(INTERNAL_FUNCTION_PARAMETERS, bool gm);
+-PHPAPI zend_string *php_format_date(const char *format, size_t format_len, time_t ts, bool localtime);
++PHPAPI zend_string *php_format_date(const char *format, size_t format_len, PHP_DATE_TS_T ts, bool localtime);
+ PHPAPI zend_string *php_format_date_obj(const char *format, size_t format_len, const php_date_obj *date_obj);
+ 
+ /* Mechanism to set new TZ database */
+--- a/ext/date/php_date.c
++++ b/ext/date/php_date.c
+@@ -879,7 +879,7 @@
+ }
+ /* }}} */
+ 
+-PHPAPI zend_string *php_format_date(const char *format, size_t format_len, time_t ts, bool localtime) /* {{{ */
++PHPAPI zend_string *php_format_date(const char *format, size_t format_len, PHP_DATE_TS_T ts, bool localtime) /* {{{ */
+ {
+ 	timelib_time   *t;
+ 	timelib_tzinfo *tzi;
+@@ -905,7 +905,7 @@
+ /* }}} */
+ 
+ /* {{{ php_idate */
+-PHPAPI int php_idate(char format, time_t ts, bool localtime)
++PHPAPI int php_idate(char format, PHP_DATE_TS_T ts, bool localtime)
+ {
+ 	timelib_time   *t;
+ 	timelib_tzinfo *tzi;

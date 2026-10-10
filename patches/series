@@ -5,3 +5,4 @@
 0005-opcache-lockfile-default-vms.patch
 0006-zend-fiber-stack-32bit-vms.patch
 0007-temp-dir-sys-scratch-vms.patch
+0008-date-timestamp-zend-long-vms.patch
