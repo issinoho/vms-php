@@ -180,5 +180,14 @@ static inline double vms_php_acosh(double x)
 #define hypot(x, y) vms_php_hypot(x, y)
 #define nextafter(x, y) vms_php_nextafter(x, y)
 
+/* strerror() and strerror_r() with glibc's wording, not the C RTL's
+   ("No such file or directory", not "no such file or directory"):
+   vmsport/vms_strerror.c (PORTING_LOG #28). */
+#include <string.h>
+char *vms_php_strerror(int e);
+int vms_php_strerror_r(int e, char *buf, size_t n);
+#define strerror(e) vms_php_strerror(e)
+#define strerror_r(e, buf, n) vms_php_strerror_r(e, buf, n)
+
 #endif /* __VMS && __clang__ */
 #endif /* VMS_PHP_COMPAT_H */

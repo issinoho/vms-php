@@ -168,6 +168,10 @@ $ src = "vmsport/vms_syslog.c"
 $ vsrc = "[.VMSPORT]VMS_SYSLOG.C"
 $ name = "vms_syslog"
 $ gosub compile_one
+$ src = "vmsport/vms_strerror.c"
+$ vsrc = "[.VMSPORT]VMS_STRERROR.C"
+$ name = "vms_strerror"
+$ gosub compile_one
 $ write sys$output "BUILD: ''ncomp' compiled, ''failed' failed"
 $ if failed .gt. 0 then goto done
 $!
@@ -290,6 +294,7 @@ $ write o obj, "VMS_CRTL_INIT.OBJ"
 $ write o obj, "VMS_FIBER_EXIT.OBJ"
 $ write o obj, "VMS_SYSLOG.OBJ"
 $ write o obj, "VMS_SHIMS.OBJ"
+$ write o obj, "VMS_STRERROR.OBJ"
 $ write o "PCRE2$ROOT:[LIB]PCRE2-8.OLB/LIBRARY"
 $ write o "LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY"
 $ write o "ZLIB$ROOT:[LIB]LIBZ.OLB/LIBRARY"
