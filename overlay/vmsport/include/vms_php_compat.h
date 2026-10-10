@@ -189,5 +189,12 @@ int vms_php_strerror_r(int e, char *buf, size_t n);
 #define strerror(e) vms_php_strerror(e)
 #define strerror_r(e, buf, n) vms_php_strerror_r(e, buf, n)
 
+/* putenv() through setenv(): the C RTL's putenv keeps the string in its
+   32-bit environ and ACCVIOs on one above 2 GB (vmsport/vms_shims.c,
+   PORTING_LOG #29). */
+#include <stdlib.h>
+int vms_php_putenv(char *s);
+#define putenv(s) vms_php_putenv(s)
+
 #endif /* __VMS && __clang__ */
 #endif /* VMS_PHP_COMPAT_H */

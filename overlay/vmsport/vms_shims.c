@@ -90,6 +90,30 @@ char **vms_php_environ(void)
   return copy;
 }
 
+/* putenv: the C RTL's keeps the caller's string in its 32-bit environ, and
+   ACCVIOs on a string above 2 GB, which every emalloc'd or malloc'd string
+   is (probe r_putenv; the date tests that putenv("TZ=..."), PORTING_LOG
+   #29).  vms_php_compat.h maps putenv() here: setenv() and unsetenv() copy
+   the name and value.  "NAME" without '=' removes NAME, as glibc's does. */
+int vms_php_putenv(char *s)
+{
+  const char *eq = strchr(s, '=');
+  char buf[256], *name = buf;
+  size_t len;
+  int r;
+  if (!eq)
+    return unsetenv(s);
+  len = (size_t) (eq - s);
+  if (len >= sizeof buf && !(name = malloc(len + 1)))
+    return -1;
+  memcpy(name, s, len);
+  name[len] = 0;
+  r = setenv(name, eq + 1, 1);
+  if (name != buf)
+    free(name);
+  return r;
+}
+
 /* Boost.Context's make_fcontext calls _exit if a fiber's entry function
    returns; vms_fiber_exit.S defines _exit and jumps here (D10). */
 void vms_fiber_exit_c(int status)
