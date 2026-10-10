@@ -44,6 +44,7 @@ $ status = ""
 $ if f$search(base + ".skip.php") .nes. ""
 $ then
 $   pipe php "-n" "-c" 'base'.ini 'base'.skip.php > phpt_skip.out 2> nl:
+$   sline = ""
 $   open/read/error=noskip s phpt_skip.out
 $   read/end=skipeof s sline
 $skipeof:

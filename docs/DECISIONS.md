@@ -175,3 +175,16 @@ Alternatives considered:
   directories that step covers.
 - Purge the older versions after each write or rename. That needs VMS file specifications
   (the C RTL's UNIX names cannot name a version), and the versions would exist until the purge.
+
+## D14. The mysqli tests move to Phase 4
+
+**Status:** approved by the user (2026-10-10, Phase 2).
+
+The plan lists the mysqli `.phpt` set in Phase 2, run against vms-mariadb. That project's test
+server (port 3307) has not run since the node was rebooted, and starting it belongs to vms-mariadb.
+Phase 4 runs mysqli through phpBB against a running server anyway, so the set runs there,
+together with the board tests. Phase 2 covers mysqli only by building and loading the extension.
+The host has no MySQL server, so there is no Linux reference run for mysqli. Alternatives
+considered:
+- Start vms-mariadb's server for Phase 2, in its own test database.
+- Run the set against the board's database. No: the board is the user's.
