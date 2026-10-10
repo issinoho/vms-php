@@ -143,3 +143,35 @@ Known limits:
 - A command that prints its own marker as its last line, and then stops DCL, can spoof the
   status.
 - DCL has no `echo` verb, so Zend's bug80811 still fails, now with result code 1 (`%DCL-W-IVVERB`).
+
+## D12. phpt tests run without file-protection privileges
+
+**Status:** proposed (2026-10-10, Phase 2).
+
+The account that runs the tests on the node holds SYSPRV and READALL, and those override file
+protection: is_readable(), is_writable() and is_executable() return true after chmod(0), and
+writes into read-only directories succeed. The Linux reference runs without root. So
+tools/vms_phpt.com drops SYSPRV, BYPASS, READALL and GRPPRV for its own process before running
+the tests. This also matches the board, whose PHP should run as an unprivileged account; that
+gets checked in Phase 3. Alternatives considered:
+- A separate unprivileged test account. Setting one up would need the user to act on the node.
+- Recording the privilege-dependent tests as expected differences. This would hide real
+  protection bugs.
+
+## D13. Files PHP rewrites keep a single version
+
+**Status:** approved by the user (2026-10-10; PORTING_LOG #40).
+
+On OpenVMS each rewrite of a file with `fopen(..., "w")` or `file_put_contents()` creates a new
+version, and so does `rename()` onto an existing file. phpBB rewrites its cache and store files,
+so those would accumulate versions up to the 32767 limit. Two changes keep one version:
+- Patch 0015: an existing file opened with "w" is truncated in place, which is what POSIX does.
+- `vms_php_rename` deletes the target's versions before renaming. The target is briefly
+  absent, where POSIX's rename() is atomic; phpBB's cache treats a missing file as a miss.
+
+Alternatives considered:
+- Keep the C RTL's behaviour and set `SET DIRECTORY/VERSION_LIMIT=1` on phpBB's writable
+  directories at install time. This needs a step at deployment, and it applies only to the
+  directories that step covers.
+- Purge the older versions after each write or rename. That needs VMS file specifications
+  (the C RTL's UNIX names cannot name a version), and the versions would exist until the purge.

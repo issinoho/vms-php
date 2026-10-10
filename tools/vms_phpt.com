@@ -8,10 +8,14 @@ $! Each test runs as  php -n -c <base>.ini <base>.php  in its directory, after
 $! <base>.skip.php if it has one (output starting "skip" skips it), and
 $! <base>.clean.php after.  PHP's memory manager is forced on: the node's
 $! system logical USE_ZEND_ALLOC=0 would switch it off (PORTING_LOG #16).
+$! The tests run without the privileges that override file protection
+$! (SYSPRV, BYPASS, READALL, GRPPRV), as on Linux without root: with them,
+$! is_readable() after chmod(0) is true (D12).
 $ set noon
 $ set process/parse_style=extended
 $ define/process decc$argv_parse_style enable
 $ define/process USE_ZEND_ALLOC "1"
+$ set process/privileges=(nosysprv,nobypass,noreadall,nogrpprv)
 $ php = "$" + p2
 $ top = p1
 $ res = p3

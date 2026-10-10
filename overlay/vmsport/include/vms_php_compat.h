@@ -196,5 +196,24 @@ int vms_php_strerror_r(int e, char *buf, size_t n);
 int vms_php_putenv(char *s);
 #define putenv(s) vms_php_putenv(s)
 
+/* mkdir(), unlink() and rename() with POSIX results (vmsport/vms_files.c):
+   mkdir(path, 0777), PHP's default, gives a directory without DELETE access,
+   which cannot be renamed (PORTING_LOG #36); unlink() removes every version
+   of the file, not only the newest (#37); rename() onto a file replaces it
+   rather than adding a version (#40).  All three are object-like: PHP's
+   stream wrappers have members named unlink and rename, renamed with them,
+   and the C RTL declares mkdir() with a variadic tail in <stat.h> and
+   <unixlib.h>, which vms_php_mkdir() repeats so that those declarations
+   become its own. */
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+int vms_php_mkdir(const char *path, mode_t mode, ...);
+int vms_php_unlink(const char *path);
+int vms_php_rename(const char *from, const char *to);
+#define mkdir vms_php_mkdir
+#define unlink vms_php_unlink
+#define rename vms_php_rename
+
 #endif /* __VMS && __clang__ */
 #endif /* VMS_PHP_COMPAT_H */

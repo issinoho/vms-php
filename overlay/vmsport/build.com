@@ -93,6 +93,13 @@ $ unix = unix + "/" + e
 $ i = i + 1
 $ goto unix_loop
 $unix_done:
+$! clang leaves an empty temporary file in SYS$SCRATCH (the login
+$! directory) each time it assembles a .S source, with one of a few names per
+$! source; once they all exist it fails with "unable to make temporary file:
+$! file exists" (PORTING_LOG #41).  Its temporary files go to a directory of
+$! the build tree instead, emptied after each compile.
+$ scratch = top - "]" + ".VMSPORT.BUILD.TMP]"
+$ if f$search(top - "]" + ".VMSPORT.BUILD]TMP.DIR") .eqs. "" then create/directory 'scratch'
 $ rsp = "[.VMSPORT.BUILD]CLANG.RSP"
 $ create/fdl="RECORD; FORMAT STREAM_LF;" 'rsp'
 $ open/append r 'rsp'
@@ -171,6 +178,10 @@ $ gosub compile_one
 $ src = "vmsport/vms_strerror.c"
 $ vsrc = "[.VMSPORT]VMS_STRERROR.C"
 $ name = "vms_strerror"
+$ gosub compile_one
+$ src = "vmsport/vms_files.c"
+$ vsrc = "[.VMSPORT]VMS_FILES.C"
+$ name = "vms_files"
 $ gosub compile_one
 $ write sys$output "BUILD: ''ncomp' compiled, ''failed' failed"
 $ if failed .gt. 0 then goto done
@@ -260,6 +271,7 @@ $   if f$cvtime(f$file_attributes(o, "RDT")) .ges. f$cvtime(f$file_attributes(vs
 $ endif
 $ ncomp = ncomp + 1
 $ define/user sys$error sys$output
+$ define/user sys$scratch 'scratch'
 $! assembler sources (Boost.Context's fiber routines, D10) without the
 $! response file: its forced C headers would be read as assembly
 $ if f$edit(f$parse(vsrc,,,"TYPE"), "UPCASE") .eqs. ".S"
@@ -268,7 +280,9 @@ $   clang 'flags' -c 'src' -o 'o'
 $ else
 $   clang "@''rspunix'" 'flags' -c 'src' -o 'o'
 $ endif
-$ if .not. $status .or. f$search(o) .eqs. ""
+$ cst = $status
+$ if f$search(scratch + "*.*;*") .nes. "" then delete/nolog 'scratch'*.*;*
+$ if .not. cst .or. f$search(o) .eqs. ""
 $ then
 $   failed = failed + 1
 $   write sys$output "BUILD: FAILED ''src'"
@@ -295,6 +309,7 @@ $ write o obj, "VMS_FIBER_EXIT.OBJ"
 $ write o obj, "VMS_SYSLOG.OBJ"
 $ write o obj, "VMS_SHIMS.OBJ"
 $ write o obj, "VMS_STRERROR.OBJ"
+$ write o obj, "VMS_FILES.OBJ"
 $ write o "PCRE2$ROOT:[LIB]PCRE2-8.OLB/LIBRARY"
 $ write o "LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY"
 $ write o "ZLIB$ROOT:[LIB]LIBZ.OLB/LIBRARY"
