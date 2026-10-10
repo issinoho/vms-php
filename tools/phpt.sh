@@ -23,17 +23,46 @@ fi
 # upload the set (only files that changed since the last upload)
 manifest=$top/cache/pushed-phpt-$set_-$node.sha
 touch "$manifest"
-(cd "$top/cache/phpt" && find "$set_" -type f -print0 | sort -z | xargs -0 sha256sum) > "$manifest.new"
+# "<sha256>  <path>" per file, the path as raw bytes (sha256sum prints names
+# that are not UTF-8 with U+FFFD in place of their bytes, which then named no
+# file: PORTING_LOG #31)
+(cd "$top/cache/phpt" && python3 -I -c '
+import hashlib, os, sys
+out = []
+for root, dirs, files in os.walk(os.fsencode(sys.argv[1])):
+    for f in files:
+        p = os.path.join(root, f)
+        with open(p, "rb") as fh:
+            out.append(hashlib.sha256(fh.read()).hexdigest().encode() + b"  " + p + b"\n")
+sys.stdout.buffer.write(b"".join(sorted(out)))' "$set_") > "$manifest.new"
 # file names may contain spaces (ext/dom/tests/modern/xml/test foo.xml): the
 # path is everything after sha256sum's 64-digit hash and two spaces, and every
 # sftp path is quoted (an unquoted one aborted the batch, so the rest of the set
 # was never sent)
 changed=$(comm -23 <(sort "$manifest.new") <(sort "$manifest") | cut -c67-)
+# names that are not UTF-8 (the Windows code-page fixtures in
+# ext/standard/tests/file/windows_mb_path, for Windows-only tests) cannot go
+# through sftp: they are left out, and out of the manifest
+bad=$(printf '%s\n' "$changed" | python3 -I -c '
+import sys
+for l in sys.stdin.buffer:
+    try: l.decode("utf-8")
+    except UnicodeDecodeError: sys.stdout.buffer.write(l)')
+if [ -n "$bad" ]; then
+    echo "phpt: not sending $(printf '%s\n' "$bad" | grep -c .) files whose names are not UTF-8"
+    changed=$(comm -23 <(printf '%s\n' "$changed" | sort) <(printf '%s\n' "$bad" | sort))
+    awk 'NR==FNR { skip[$0] = 1; next } !(substr($0, 67) in skip)' <(printf '%s\n' "$bad") "$manifest.new" > "$manifest.new2"
+    mv "$manifest.new2" "$manifest.new"
+fi
 batch=$top/cache/phpt-$set_.sftp
 {
     echo "cd $SFTPDIR"
     echo "-mkdir phpt"
-    (cd "$top/cache/phpt" && find "$set_" -type d) | sed 's|^\(.*\)$|-mkdir "phpt/\1"|'
+    (cd "$top/cache/phpt" && find "$set_" -type d) | python3 -I -c '
+import sys
+for l in sys.stdin.buffer:
+    try: sys.stdout.write("-mkdir \"phpt/%s\"\n" % l.decode("utf-8").rstrip("\n"))
+    except UnicodeDecodeError: pass'
     while IFS= read -r f; do
         [ -n "$f" ] && printf 'put "%s" "%s"\n' "$top/cache/phpt/$f" "phpt/$f"
     done <<< "$changed"
