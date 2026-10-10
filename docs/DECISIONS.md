@@ -122,3 +122,24 @@ fibers disabled (`Fiber` throws) - not needed.
 `vms_lp64.h` (D12 there) for all of PHP. `popen`/`system` work, but report DCL's success
 status (1) as exit status 1: `exec()`/`system()`/`passthru()` map a VMS status to 0
 (success, odd) or 1 (failure) on VMS. `proc_open` stays unsupported (no fork; D5).
+
+**How the status is obtained** (approved by the user 2026-10-10; PORTING_LOG #35): pclose()
+cannot be used, since it loses the status altogether (probe `r_pclose_status`: `exit 1` and `exit 2`
+both come back as 0). Patch 0012 runs the command as `PIPE cmd ; WRITE SYS$OUTPUT
+marker,$STATUS`, and a read filter takes the marker line off the end of the output (probe
+`r_exec_status`). A C program's `exit(n)` arrives as `%X0035A001 + n * 8`, an odd status
+that the plain odd/even rule would call success, so it is decoded back to n. Any other status
+maps to 0 if odd, 1 if even. Alternatives considered:
+- Return the status through a job logical name (`DEFINE/JOB` in the PIPE). This keeps the
+  output untouched, but apostrophe substitution does not happen inside the PIPE segment, so
+  the name received the literal `'$STATUS'`.
+- Write the status to a temporary file: one more file per call, plus cleanup.
+- Document the result code as unreliable on VMS.
+Known limits:
+- A command that ends DCL itself (`EXIT n`) prints no marker, and pclose()'s value is kept.
+- A command with `|` or `(` outside quotes runs unwrapped and keeps pclose()'s value. Under popen,
+  output from a PIPE segment that follows a pipeline or a subshell is lost, and `(a | b) ; c`
+  hangs in the subprocess (probe `r_popen_pipe`).
+- A command that prints its own marker as its last line, and then stops DCL, can spoof the
+  status.
+- DCL has no `echo` verb, so Zend's bug80811 still fails, now with result code 1 (`%DCL-W-IVVERB`).

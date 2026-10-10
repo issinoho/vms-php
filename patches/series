@@ -9,3 +9,4 @@
 0009-openssl-bio-new-file-empty-dir-vms.patch
 0010-openssl-default-conf-path-vms.patch
 0011-openssl-asn1-time-zend-long-vms.patch
+0012-exec-result-code-status-vms.patch

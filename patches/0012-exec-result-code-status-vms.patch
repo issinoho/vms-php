@@ -1,0 +1,179 @@
+Subject: standard: exec(), system() and passthru() result codes on OpenVMS
+
+pclose() does not return a DCL command's status on OpenVMS: a command
+that succeeds (status 1) comes back as exit status 1, "exit 1" and
+"exit 2" as 0, an unknown verb as 220 (vms-php PORTING_LOG #35, probe
+r_pclose_status).  On VMS php_exec() runs the command as
+"PIPE cmd ; WRITE SYS$OUTPUT marker,$STATUS", which prints the command's
+$STATUS as the last line of its output (probe r_exec_status; a leading
+PIPE verb is dropped, since PIPE does not nest).  A command with '|' or
+'(' outside quotes runs as it is and keeps pclose()'s value: under
+popen() the output of a PIPE segment after a pipeline or a subshell is
+lost, and "(a | b) ; c" hangs (probe r_popen_pipe).  A read filter keeps
+the last 64 bytes of the output back and at the end takes the marker off,
+so exec(), system() and passthru() see only the command's own output,
+binary output included.  The status becomes the result code: a C
+program's exit(n), which the C RTL encodes as %X0035A001 + n * 8, is n;
+any other success status 0 and a failure 1 (vms-php D11).  If no marker
+arrives (the command ended DCL itself, as EXIT does), pclose()'s value
+is kept.
+---
+--- a/ext/standard/exec.c
++++ b/ext/standard/exec.c
+@@ -50,6 +50,109 @@
+ # include "win32/nice.h"
+ #endif
+ 
++#ifdef __VMS
++/* pclose() does not return a DCL command's status on OpenVMS.  The command
++ * runs as "PIPE cmd ; WRITE SYS$OUTPUT marker,$STATUS"; this read filter keeps
++ * the end of the output back and takes the marker line off it at the end. */
++#define VMS_EXEC_MARKER "@@PHP_EXEC_STATUS="
++#define VMS_EXEC_TAIL 64
++
++typedef struct {
++	char tail[VMS_EXEC_TAIL];
++	size_t len;
++	bool found;
++	unsigned int status;
++} vms_exec_state;
++
++static void vms_exec_emit(php_stream *stream, php_stream_bucket_brigade *out, const char *p, size_t n)
++{
++	char *buf = emalloc(n);
++	memcpy(buf, p, n);
++	php_stream_bucket_append(out, php_stream_bucket_new(stream, buf, n, 1, 0));
++}
++
++static php_stream_filter_status_t vms_exec_filter(php_stream *stream, php_stream_filter *thisfilter,
++	php_stream_bucket_brigade *in, php_stream_bucket_brigade *out, size_t *consumed, int flags)
++{
++	vms_exec_state *st = Z_PTR(thisfilter->abstract);
++	php_stream_bucket *bucket;
++	bool emitted = false;
++
++	while ((bucket = in->head)) {
++		size_t n = st->len + bucket->buflen, keep = MIN(n, VMS_EXEC_TAIL);
++		char *all = emalloc(n);
++
++		memcpy(all, st->tail, st->len);
++		memcpy(all + st->len, bucket->buf, bucket->buflen);
++		if (consumed) {
++			*consumed += bucket->buflen;
++		}
++		php_stream_bucket_unlink(bucket);
++		php_stream_bucket_delref(bucket);
++		if (n > keep) {
++			vms_exec_emit(stream, out, all, n - keep);
++			emitted = true;
++		}
++		memcpy(st->tail, all + n - keep, keep);
++		st->len = keep;
++		efree(all);
++	}
++	if (flags & PSFS_FLAG_FLUSH_CLOSE) {
++		/* the output ends with marker "%X" 8 hex digits newline (after the
++		 * command's last line, or its last bytes if they end no line) */
++		size_t ml = sizeof(VMS_EXEC_MARKER) - 1, tl = ml + 2 + 8 + 1;
++
++		if (st->len >= tl && st->tail[st->len - 1] == '\n'
++				&& !memcmp(st->tail + st->len - tl, VMS_EXEC_MARKER "%X", ml + 2)) {
++			char hex[9];
++
++			memcpy(hex, st->tail + st->len - 9, 8);
++			hex[8] = '\0';
++			st->status = (unsigned int) strtoul(hex, NULL, 16);
++			st->found = true;
++			st->len -= tl;
++		}
++		if (st->len) {
++			vms_exec_emit(stream, out, st->tail, st->len);
++			st->len = 0;
++			emitted = true;
++		}
++	}
++	return emitted ? PSFS_PASS_ON : PSFS_FEED_ME;
++}
++
++static const php_stream_filter_ops vms_exec_filter_ops = { vms_exec_filter, NULL, "vms.exec_status" };
++
++/* Whether the command can take the marker: under popen() the output of a
++ * PIPE segment after a pipeline or a subshell is lost, and "(a | b) ; c"
++ * hangs (probe r_popen_pipe), so a command with '|' or '(' outside quotes
++ * runs as it is, with pclose()'s value. */
++static bool vms_exec_wrappable(const char *c)
++{
++	bool quoted = false;
++
++	for (; *c; c++) {
++		if (*c == '"') {
++			quoted = !quoted;
++		} else if (!quoted && (*c == '|' || *c == '(')) {
++			return false;
++		}
++	}
++	return true;
++}
++
++/* A VMS status as a result code: a C program's exit(n), which the C RTL
++ * encodes as %X0035A001 + n * 8 (_POSIX_EXIT), is n; any other odd (success)
++ * status is 0 and an even one 1 (vms-php D11). */
++static int vms_exec_code(unsigned int s)
++{
++	if ((s & 0x0FFFF000) == 0x0035A000) {
++		return (s >> 3) & 0xFF;
++	}
++	return (s & 1) ? 0 : 1;
++}
++#endif
++
+ static size_t cmd_max_len;
+ 
+ /* {{{ PHP_MINIT_FUNCTION(exec) */
+@@ -120,6 +223,24 @@
+ #if PHP_SIGCHILD
+ 	void (*sig_handler)(int) = signal(SIGCHLD, SIG_DFL);
+ #endif
++#ifdef __VMS
++	vms_exec_state vms_st = {0};
++	const char *vc = cmd;
++
++	/* PIPE does not nest: the segments of a PIPE command go in ours */
++	while (*vc == ' ' || *vc == '\t' || *vc == '$') {
++		vc++;
++	}
++	if (!strncasecmp(vc, "pipe", 4) && (vc[4] == ' ' || vc[4] == '\t')) {
++		cmd = vc + 5;
++	}
++	if (vms_exec_wrappable(cmd)) {
++		spprintf(&d, 0, "PIPE %s ; WRITE SYS$OUTPUT \"" VMS_EXEC_MARKER "\",$STATUS", cmd);
++		cmd = d;
++	} else {
++		cmd = vc;
++	}
++#endif
+ 
+ #ifdef PHP_WIN32
+ 	fp = VCWD_POPEN(cmd, "rb");
+@@ -132,6 +253,9 @@
+ 	}
+ 
+ 	stream = php_stream_fopen_from_pipe(fp, "rb");
++#ifdef __VMS
++	php_stream_filter_append(&stream->readfilters, php_stream_filter_alloc(&vms_exec_filter_ops, &vms_st, 0));
++#endif
+ 
+ 	buf = (char *) emalloc(EXEC_INPUT_BUF);
+ 	buflen = EXEC_INPUT_BUF;
+@@ -178,6 +302,11 @@
+ 	}
+ 
+ 	pclose_return = php_stream_close(stream);
++#ifdef __VMS
++	if (vms_st.found) {
++		pclose_return = vms_exec_code(vms_st.status);
++	}
++#endif
+ 	efree(buf);
+ 
+ done:
