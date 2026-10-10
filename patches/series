@@ -10,3 +10,6 @@
 0010-openssl-default-conf-path-vms.patch
 0011-openssl-asn1-time-zend-long-vms.patch
 0012-exec-result-code-status-vms.patch
+0013-streams-readdir-dots-vms.patch
+0014-standard-fflush-fsync-vms.patch
+0015-streams-fopen-truncate-in-place-vms.patch

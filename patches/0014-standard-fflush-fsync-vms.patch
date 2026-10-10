@@ -1,0 +1,34 @@
+Subject: standard: fflush() makes written data visible on OpenVMS
+
+On OpenVMS, data written to a file is seen by other opens of it and by
+stat() only after fsync() or close: until then the file reads as empty
+(probe r_file_sem: size 0, a second open reads 0 bytes; after fsync() 36).
+PHP's fflush() is a no-op for unbuffered plain files, so code that writes,
+fflush()es and reads the file back, or stats it, saw nothing (vms-php
+PORTING_LOG #39; fflush_basic, ftruncate_error).  On VMS fflush() also
+fsync()s a plain file stream that is a regular file.  Reads without a
+flush still see nothing until close; flushing on every write would cost a
+disk write each time.
+---
+--- a/ext/standard/file.c
++++ b/ext/standard/file.c
+@@ -1019,6 +1019,19 @@
+ 	if (ret) {
+ 		RETURN_FALSE;
+ 	}
++#ifdef __VMS
++	/* On OpenVMS data written to a file is seen by other opens and stat()
++	 * only after fsync() or close: fflush() makes it visible, as on POSIX. */
++	if (php_stream_is(stream, PHP_STREAM_IS_STDIO)) {
++		int fd;
++		zend_stat_t sb;
++
++		if (php_stream_cast(stream, PHP_STREAM_AS_FD, (void **) &fd, 0) == SUCCESS
++				&& zend_fstat(fd, &sb) == 0 && S_ISREG(sb.st_mode)) {
++			fsync(fd);
++		}
++	}
++#endif
+ 	RETURN_TRUE;
+ }
+ /* }}} */

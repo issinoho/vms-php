@@ -1,0 +1,105 @@
+Subject: streams: "." and ".." in plain directory streams on OpenVMS
+
+The OpenVMS C RTL's readdir() returns no "." and ".." entries.  PHP code
+and its tests expect them: FilesystemIterator without SKIP_DOTS,
+RecursiveDirectoryIterator's getSubPath(), DirectoryIterator::seek(),
+scandir() (vms-php PORTING_LOG #38, probe r_file_sem; 6 spl tests and
+fseek_dir_basic).  On VMS the plain directory stream returns "." and ".."
+first, again after rewinddir(), and skips them should readdir() ever
+return them.
+---
+--- a/main/streams/plain_wrapper.c
++++ b/main/streams/plain_wrapper.c
+@@ -1062,9 +1062,22 @@
+ /* }}} */
+ 
+ /* {{{ plain files opendir/readdir implementation */
++#ifdef __VMS
++/* The OpenVMS C RTL's readdir() returns no "." and "..", which PHP code
++ * (FilesystemIterator without SKIP_DOTS, scandir) expects: the stream
++ * returns them first. */
++typedef struct {
++	DIR *dir;
++	int dots;	/* how many of "." and ".." have been returned */
++} php_vms_dirstream;
++# define PHP_PLAIN_DIR(stream) (((php_vms_dirstream *) (stream)->abstract)->dir)
++#else
++# define PHP_PLAIN_DIR(stream) ((DIR *) (stream)->abstract)
++#endif
++
+ static ssize_t php_plain_files_dirstream_read(php_stream *stream, char *buf, size_t count)
+ {
+-	DIR *dir = (DIR*)stream->abstract;
++	DIR *dir = PHP_PLAIN_DIR(stream);
+ 	struct dirent *result;
+ 	php_stream_dirent *ent = (php_stream_dirent*)buf;
+ 
+@@ -1072,7 +1085,22 @@
+ 	if (count != sizeof(php_stream_dirent))
+ 		return -1;
+ 
++#ifdef __VMS
++	{
++		php_vms_dirstream *ds = (php_vms_dirstream *) stream->abstract;
++
++		if (ds->dots < 2) {
++			strcpy(ent->d_name, ds->dots++ ? ".." : ".");
++			ent->d_type = DT_UNKNOWN;
++			return sizeof(php_stream_dirent);
++		}
++	}
++	do {
++		result = readdir(dir);
++	} while (result && (!strcmp(result->d_name, ".") || !strcmp(result->d_name, "..")));
++#else
+ 	result = readdir(dir);
++#endif
+ 	if (result) {
+ 		size_t len = strlen(result->d_name);
+ 		if (UNEXPECTED(len >= sizeof(ent->d_name))) {
+@@ -1092,12 +1120,22 @@
+ 
+ static int php_plain_files_dirstream_close(php_stream *stream, int close_handle)
+ {
++#ifdef __VMS
++	DIR *dir = PHP_PLAIN_DIR(stream);
++
++	efree(stream->abstract);
++	return closedir(dir);
++#else
+ 	return closedir((DIR *)stream->abstract);
++#endif
+ }
+ 
+ static int php_plain_files_dirstream_rewind(php_stream *stream, zend_off_t offset, int whence, zend_off_t *newoffs)
+ {
+-	rewinddir((DIR *)stream->abstract);
++	rewinddir(PHP_PLAIN_DIR(stream));
++#ifdef __VMS
++	((php_vms_dirstream *) stream->abstract)->dots = 0;
++#endif
+ 	return 0;
+ }
+ 
+@@ -1138,9 +1176,21 @@
+ 	}
+ #endif
+ 	if (dir) {
++#ifdef __VMS
++		php_vms_dirstream *ds = emalloc(sizeof(*ds));
++
++		ds->dir = dir;
++		ds->dots = 0;
++		stream = php_stream_alloc(&php_plain_files_dirstream_ops, ds, 0, mode);
++		if (stream == NULL) {
++			efree(ds);
++			closedir(dir);
++		}
++#else
+ 		stream = php_stream_alloc(&php_plain_files_dirstream_ops, dir, 0, mode);
+ 		if (stream == NULL)
+ 			closedir(dir);
++#endif
+ 	}
+ 
+ 	return stream;

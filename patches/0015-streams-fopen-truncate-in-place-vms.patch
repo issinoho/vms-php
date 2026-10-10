@@ -1,0 +1,36 @@
+Subject: streams: rewrite files in place for "w" on OpenVMS
+
+On OpenVMS open() with O_TRUNC on an existing file creates a new version
+of it, so a file rewritten with fopen(..., "w") or file_put_contents()
+gains a version each time, up to the limit of 32767: a board that
+rewrites its cache files would fill up with versions (vms-php PORTING_LOG
+#40, probe r_versions).  On VMS _php_stream_fopen() opens an existing file
+without O_TRUNC and truncates it with ftruncate(0), which keeps one
+version and is what POSIX does (the same file, as fileinode() shows on
+Linux).  If that fails, or the file does not exist, the open is the usual
+one.
+---
+--- a/main/streams/plain_wrapper.c
++++ b/main/streams/plain_wrapper.c
+@@ -1237,6 +1237,21 @@
+ 	}
+ #ifdef PHP_WIN32
+ 	fd = php_win32_ioutil_open(realpath, open_flags, 0666);
++#elif defined(__VMS)
++	/* On OpenVMS O_TRUNC on an existing file creates a new version of it, so
++	 * a file rewritten with "w" gains one each time, up to 32767.  Truncate
++	 * the existing file in place instead, as POSIX does. */
++	fd = -1;
++	if (open_flags & O_TRUNC) {
++		fd = open(realpath, open_flags & ~(O_TRUNC | O_CREAT | O_EXCL), 0666);
++		if (fd != -1 && ftruncate(fd, 0) != 0) {
++			close(fd);
++			fd = -1;
++		}
++	}
++	if (fd == -1) {
++		fd = open(realpath, open_flags, 0666);
++	}
+ #else
+ 	fd = open(realpath, open_flags, 0666);
+ #endif
