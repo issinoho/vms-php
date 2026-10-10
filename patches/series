@@ -13,3 +13,4 @@
 0013-streams-readdir-dots-vms.patch
 0014-standard-fflush-fsync-vms.patch
 0015-streams-fopen-truncate-in-place-vms.patch
+0016-openssl-export-to-file-empty-dir-vms.patch

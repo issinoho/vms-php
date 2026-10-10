@@ -1,0 +1,47 @@
+Subject: openssl: *_export_to_file() fail for "" and directories on OpenVMS
+
+openssl_x509_export_to_file(), openssl_pkcs12_export_to_file(),
+openssl_csr_export_to_file() and openssl_pkey_export_to_file() open their
+output with BIO_new_file() directly.  The OpenVMS C RTL opens "" for
+writing (creating a file named ".") and opens a directory path as a file
+beside the directory ("dir." next to DIR.DIR), where POSIX fails, so
+these returned true (openssl_pkcs12_export_to_file_error; vms-php
+PORTING_LOG #44).  php_openssl_bio_new_file() got the same check in patch
+0009 (#32).  On VMS openssl.c's BIO_new_file() fails for "" and
+directories and leaves the errors OpenSSL's own does when fopen() fails
+(openssl_error_string_basic_openssl3 still passes on a Linux build with
+this code enabled).
+---
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -58,6 +58,30 @@
+ 
+ #include "openssl_arginfo.h"
+ 
++#ifdef __VMS
++/* The OpenVMS C RTL opens "" for writing (a file named ".") and opens a
++ * directory path as a file beside the directory ("dir." next to DIR.DIR),
++ * where POSIX fails: the *_export_to_file() functions wrote files where
++ * they must fail (vms-php PORTING_LOG #44; php_openssl_bio_new_file() has
++ * the same check, #32). */
++static BIO *php_openssl_vms_bio_new_file(const char *path, const char *mode)
++{
++	zend_stat_t sb;
++
++	if (path[0] == '\0' || (VCWD_STAT(path, &sb) == 0 && S_ISDIR(sb.st_mode))) {
++		/* the errors BIO_new_file() leaves when fopen() fails */
++		errno = path[0] == '\0' ? ENOENT : EISDIR;
++#if OPENSSL_VERSION_NUMBER >= 0x30000000L
++		ERR_raise_data(ERR_LIB_SYS, errno, "calling fopen(%s, %s)", path, mode);
++		ERR_raise(ERR_LIB_BIO, errno == ENOENT ? BIO_R_NO_SUCH_FILE : ERR_R_SYS_LIB);
++#endif
++		return NULL;
++	}
++	return BIO_new_file(path, mode);
++}
++# define BIO_new_file(path, mode) php_openssl_vms_bio_new_file(path, mode)
++#endif
++
+ /* OpenSSLCertificate class */
+ 
+ zend_class_entry *php_openssl_certificate_ce;
