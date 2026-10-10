@@ -1,0 +1,31 @@
+Subject: openssl: refuse "" and directory paths before BIO_new_file on OpenVMS
+
+The OpenVMS C RTL opens "" for writing (it creates a file named ".") and
+a directory path as a file beside the directory ("tests." next to
+TESTS.DIR), where glibc fails with ENOENT and EISDIR (vms-php probe
+r_fopen_odd).  openssl_cms_sign(), openssl_pkcs7_sign/encrypt/decrypt()
+and openssl_pkcs12_export_to_file() then "succeeded" on such paths and
+left those files behind (7 openssl tests, vms-php PORTING_LOG #32).  On
+VMS php_openssl_bio_new_file() fails for them, as BIO_new_file does on
+other systems.
+---
+--- a/ext/openssl/openssl_backend_common.c
++++ b/ext/openssl/openssl_backend_common.c
+@@ -1623,6 +1623,17 @@
+ 		return NULL;
+ 	}
+ 
++#ifdef __VMS
++	/* The C RTL opens "" for writing (a file named ".") and a directory path
++	 * as a file beside the directory ("tests." next to TESTS.DIR), where
++	 * glibc fails with ENOENT and EISDIR. */
++	{
++		zend_stat_t sb;
++		if (file_path[0] == '\0' || (VCWD_STAT(file_path, &sb) == 0 && S_ISDIR(sb.st_mode))) {
++			return NULL;
++		}
++	}
++#endif
+ 	bio = BIO_new_file(file_path, mode);
+ 	if (bio == NULL) {
+ 		php_openssl_store_errors();

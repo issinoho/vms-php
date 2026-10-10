@@ -1,0 +1,90 @@
+Subject: openssl: ASN.1 times as zend_long on OpenVMS
+
+php_openssl_asn1_time_to_time_t() returns time_t, which on OpenVMS is
+the C RTL's 32-bit unsigned type: its error value (time_t)-1 reached
+openssl_x509_parse()'s validFrom_time_t/validTo_time_t as 4294967295,
+not -1 (cve-2013-6420, vms-php PORTING_LOG #34).  On VMS it returns a
+zend_long (PHP_OPENSSL_TIME_T), and a failed mktime() is -1.
+---
+--- a/ext/openssl/php_openssl_backend.h
++++ b/ext/openssl/php_openssl_backend.h
+@@ -170,7 +170,14 @@
+ 
+ void php_openssl_add_assoc_name_entry(zval * val, char * key, X509_NAME * name, int shortname);
+ void php_openssl_add_assoc_asn1_string(zval * val, char * key, ASN1_STRING * str);
+-time_t php_openssl_asn1_time_to_time_t(ASN1_UTCTIME * timestr);
++/* OpenVMS's time_t is a 32-bit unsigned type, in which the error value -1
++ * reads as 4294967295: there the result is a zend_long. */
++#ifdef __VMS
++# define PHP_OPENSSL_TIME_T zend_long
++#else
++# define PHP_OPENSSL_TIME_T time_t
++#endif
++PHP_OPENSSL_TIME_T php_openssl_asn1_time_to_time_t(ASN1_UTCTIME * timestr);
+ int php_openssl_config_check_syntax(const char * section_label, const char * config_filename, const char * section, CONF *config);
+ char *php_openssl_conf_get_string(CONF *conf, const char *group, const char *name);
+ long php_openssl_conf_get_number(CONF *conf, const char *group, const char *name);
+--- a/ext/openssl/openssl_backend_common.c
++++ b/ext/openssl/openssl_backend_common.c
+@@ -113,7 +113,7 @@
+ 	add_assoc_stringl(val, key, (const char *)ASN1_STRING_get0_data(str), ASN1_STRING_length(str));
+ }
+ 
+-time_t php_openssl_asn1_time_to_time_t(ASN1_UTCTIME * timestr)
++PHP_OPENSSL_TIME_T php_openssl_asn1_time_to_time_t(ASN1_UTCTIME * timestr)
+ {
+     /*
+      * This is how the time string is formatted:
+@@ -122,7 +122,7 @@
+      *   ts->tm_mon+1,ts->tm_mday,ts->tm_hour,ts->tm_min,ts->tm_sec);
+      */
+ 
+-	time_t ret;
++	PHP_OPENSSL_TIME_T ret;
+ 	struct tm thetime;
+ 	char * strbuf;
+ 	char * thestr;
+@@ -131,24 +131,24 @@
+ 
+ 	if (ASN1_STRING_type(timestr) != V_ASN1_UTCTIME && ASN1_STRING_type(timestr) != V_ASN1_GENERALIZEDTIME) {
+ 		php_error_docref(NULL, E_WARNING, "Illegal ASN1 data type for timestamp");
+-		return (time_t)-1;
++		return (PHP_OPENSSL_TIME_T)-1;
+ 	}
+ 
+ 	timestr_len = (size_t)ASN1_STRING_length(timestr);
+ 
+ 	if (timestr_len != strlen((const char *)ASN1_STRING_get0_data(timestr))) {
+ 		php_error_docref(NULL, E_WARNING, "Illegal length in timestamp");
+-		return (time_t)-1;
++		return (PHP_OPENSSL_TIME_T)-1;
+ 	}
+ 
+ 	if (timestr_len < 13) {
+ 		php_error_docref(NULL, E_WARNING, "Unable to parse time string %s correctly", ASN1_STRING_get0_data(timestr));
+-		return (time_t)-1;
++		return (PHP_OPENSSL_TIME_T)-1;
+ 	}
+ 
+ 	if (ASN1_STRING_type(timestr) == V_ASN1_GENERALIZEDTIME && timestr_len < 15) {
+ 		php_error_docref(NULL, E_WARNING, "Unable to parse time string %s correctly", ASN1_STRING_get0_data(timestr));
+-		return (time_t)-1;
++		return (PHP_OPENSSL_TIME_T)-1;
+ 	}
+ 
+ 	strbuf = estrdup((const char *)ASN1_STRING_get0_data(timestr));
+@@ -188,7 +188,14 @@
+ 
+ 
+ 	thetime.tm_isdst = -1;
++#ifdef __VMS
++	{
++		time_t t = mktime(&thetime);
++		ret = t == (time_t) -1 ? -1 : (zend_long) t;
++	}
++#else
+ 	ret = mktime(&thetime);
++#endif
+ 
+ #ifdef HAVE_STRUCT_TM_TM_GMTOFF
+ 	gmadjust = thetime.tm_gmtoff;

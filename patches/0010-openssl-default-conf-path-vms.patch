@@ -1,0 +1,30 @@
+Subject: openssl: the default openssl.cnf path in VMS syntax on OpenVMS
+
+With OPENSSL_CONF unset, the default configuration file is
+X509_get_default_cert_area() + "/openssl.cnf".  VSI's SSL3 returns a VMS
+directory spec, "SSL3$ROOT:[000000]", so the path was
+"SSL3$ROOT:[000000]/openssl.cnf", which does not exist: every function
+that loads the default configuration (openssl_csr_new() with no options,
+openssl_pkey_new() with a config that sets oid_file...) failed (vms-php
+PORTING_LOG #33).  On VMS a cert area ending in ']' or ':' takes the file
+name without a '/'.
+---
+--- a/ext/openssl/openssl_backend_common.c
++++ b/ext/openssl/openssl_backend_common.c
+@@ -483,6 +483,16 @@
+ 
+ 	/* default to 'openssl.cnf' if no environment variable is set */
+ 	if (config_filename == NULL) {
++#ifdef __VMS
++		/* the cert area is a VMS directory spec ("SSL3$ROOT:[000000]"),
++		 * which takes the file name without a '/' */
++		const char *area = X509_get_default_cert_area();
++		size_t area_len = strlen(area);
++		if (area_len > 0 && (area[area_len - 1] == ']' || area[area_len - 1] == ':')) {
++			snprintf(default_ssl_conf_filename, sizeof(default_ssl_conf_filename), "%s%s",
++					area, "openssl.cnf");
++		} else
++#endif
+ 		snprintf(default_ssl_conf_filename, sizeof(default_ssl_conf_filename), "%s/%s",
+ 				X509_get_default_cert_area(),
+ 				"openssl.cnf");
