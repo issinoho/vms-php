@@ -9,7 +9,9 @@
    unlink(): the C RTL deletes only the newest version, so a file PHP wrote
    more than once still exists after unlink() (probe r_file_sem; there is no
    DECC$UNLINK_ALL_VERSIONS in this C RTL).  POSIX removes the name: delete
-   versions until none is left (probe r_versions; PORTING_LOG #37).
+   versions until none is left (probe r_versions; PORTING_LOG #37).  On an
+   empty directory the C RTL's unlink() removes it, where POSIX fails with
+   EISDIR (unlink_variation10; #43): refuse directories.
 
    rename(): onto an existing file, the C RTL gives the target a new version
    and keeps the old one (probe r_rename_over), so a file replaced by
@@ -19,6 +21,7 @@
 
    vms_php_compat.h maps all three here. */
 #include <stdio.h>
+#include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -40,7 +43,16 @@ int vms_php_mkdir(const char *path, mode_t mode, ...)
 
 int vms_php_unlink(const char *path)
 {
-  int r = unlink(path), i;
+  struct stat sb;
+  int r, i;
+
+  /* the C RTL removes an empty directory; POSIX refuses (PORTING_LOG #43) */
+  if (lstat(path, &sb) == 0 && S_ISDIR(sb.st_mode))
+    {
+      errno = EISDIR;
+      return -1;
+    }
+  r = unlink(path);
 
   /* the older versions; the C RTL allows 32767 */
   for (i = 0; r == 0 && i < 32767 && access(path, F_OK) == 0; i++)
