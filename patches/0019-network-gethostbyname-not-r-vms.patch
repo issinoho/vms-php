@@ -1,0 +1,26 @@
+Subject: main: gethostbyname() instead of gethostbyname_r() on OpenVMS
+
+php_network_gethostbyname() calls the 6-argument gethostbyname_r() with a
+malloc()ed buffer.  On OpenVMS (LP64) that buffer is above 2 GB, and
+gethostbyname_r() writes through a 32-bit copy of its address: an ACCVIO
+at the sign-extended address in system code.  With a _malloc32() buffer
+the same call works (probe r_hostent_r).  gethostbyname() and
+gethostbynamel() therefore crashed for any name that resolved (vms-php
+PORTING_LOG #51).  PHP is not threaded on VMS, so it uses gethostbyname(),
+whose static result needs no buffer.
+---
+--- a/main/network.c
++++ b/main/network.c
+@@ -1408,7 +1408,11 @@
+ #endif
+ 
+ PHPAPI struct hostent*	php_network_gethostbyname(const char *name) {
+-#if !defined(HAVE_GETHOSTBYNAME_R)
++#if !defined(HAVE_GETHOSTBYNAME_R) || defined(__VMS)
++	/* On OpenVMS gethostbyname_r() cannot fill a buffer above 2 GB, where
++	 * LP64 malloc() puts it: it ACCVIOs at the sign-extended 32-bit address
++	 * (vms-php PORTING_LOG #51, probe r_hostent_r).  PHP is not threaded
++	 * there, so the static result of gethostbyname() serves. */
+ 	return gethostbyname(name);
+ #else
+ 	if (FG(tmp_host_buf)) {

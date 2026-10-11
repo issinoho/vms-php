@@ -62,6 +62,14 @@ def sections(path):
     return {k: '\n'.join(v) for k, v in secs.items()}
 
 
+# Tests that hang PHP.EXE on the node, not run until the cause is fixed (each
+# with its PORTING_LOG entry).  vms_phpt.com has no per-test timeout: run-tests
+# kills a stuck test from outside, and a DCL watchdog would need WAIT.
+# (arginfo_zpp_mismatch was here until patches 0018-0019 fixed its crash, #49-#51.)
+HANGS = {
+}
+
+
 def prepare(setname, dirs):
     out = os.path.join(top, 'cache', 'phpt', setname)
     shutil.rmtree(out, ignore_errors=True)
@@ -82,6 +90,9 @@ def prepare(setname, dirs):
                 why = sorted(set(s) & UNSUPPORTED)
                 exts = [e.strip().lower() for e in s.get('EXTENSIONS', '').split() if e.strip()]
                 missing = [e for e in exts if e not in BUILT]
+                if '%s/%s' % (rel, base) in HANGS:
+                    unsupported.append('%s/%s hangs: %s' % (rel, base, HANGS['%s/%s' % (rel, base)]))
+                    continue
                 if why or missing or 'FILE' not in s:
                     unsupported.append('%s/%s %s' % (rel, base, ' '.join(why) or
                                                      ('ext ' + ','.join(missing) if missing else 'no FILE')))

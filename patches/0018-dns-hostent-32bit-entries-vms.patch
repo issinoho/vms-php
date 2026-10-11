@@ -1,0 +1,54 @@
+Subject: standard: read 32-bit h_addr_list entries on OpenVMS
+
+gethostbyname() and gethostbynamel() copy each h_addr_list entry with
+memcpy(..., sizeof(struct in_addr *)), so that misaligned entries (macOS)
+are safe.  On OpenVMS the TCP/IP headers' hostent holds 32-bit pointers,
+in LP64 code too (probe r_hostent: sizeof(*h_addr_list) is 4), so each
+copy read two entries as one pointer.  gethostbynamel('localhost') ended
+in an ACCVIO at a sign-extended address, and gethostbyname() would give
+garbage for a host with more than one address.  arginfo_zpp_mismatch
+called it with "" and was left hibernating (vms-php PORTING_LOG #49, #50;
+probe r_dns_empty).  On VMS the entries are copied with their own type.
+---
+--- a/ext/standard/dns.c
++++ b/ext/standard/dns.c
+@@ -168,6 +168,21 @@
+ }
+ /* }}} */
+ 
++/* On macos h_addr_list entries may be misaligned, so they are copied out.
++ * On OpenVMS the entries are 32-bit pointers (the TCP/IP headers' hostent,
++ * in LP64 code too): copying sizeof(struct in_addr *) read two entries as
++ * one, so gethostbynamel() crashed on any host and gethostbyname() returned
++ * garbage for one with several addresses (vms-php PORTING_LOG #50). */
++#ifdef __VMS
++# define PHP_DNS_H_ADDR_ENTRY(hp, i, dst) do { \
++		__typeof__((hp)->h_addr_list[0]) e_; \
++		memcpy(&e_, &(hp)->h_addr_list[i], sizeof(e_)); \
++		(dst) = (struct in_addr *) e_; \
++	} while (0)
++#else
++# define PHP_DNS_H_ADDR_ENTRY(hp, i, dst) memcpy(&(dst), &(hp)->h_addr_list[i], sizeof(struct in_addr *))
++#endif
++
+ /* {{{ php_gethostbyaddr */
+ static zend_string *php_gethostbyaddr(char *ip)
+ {
+@@ -272,7 +287,7 @@
+ 		/* On macos h_addr_list entries may be misaligned. */
+ 		const char *ipaddr;
+ 		struct in_addr *h_addr_entry; /* Don't call this h_addr, it's a macro! */
+-		memcpy(&h_addr_entry, &hp->h_addr_list[i], sizeof(struct in_addr *));
++		PHP_DNS_H_ADDR_ENTRY(hp, i, h_addr_entry);
+ 		if (!h_addr_entry) {
+ 			return;
+ 		}
+@@ -304,7 +319,7 @@
+ 	}
+ 
+ 	/* On macos h_addr_list entries may be misaligned. */
+-	memcpy(&h_addr_0, &hp->h_addr_list[0], sizeof(struct in_addr *));
++	PHP_DNS_H_ADDR_ENTRY(hp, 0, h_addr_0);
+ 	if (!h_addr_0) {
+ 		return zend_string_init(name, strlen(name), 0);
+ 	}

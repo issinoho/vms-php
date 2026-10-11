@@ -15,3 +15,5 @@
 0015-streams-fopen-truncate-in-place-vms.patch
 0016-openssl-export-to-file-empty-dir-vms.patch
 0017-ctype-c-locale-ascii-vms.patch
+0018-dns-hostent-32bit-entries-vms.patch
+0019-network-gethostbyname-not-r-vms.patch
