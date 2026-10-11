@@ -79,7 +79,8 @@ static inline double vms_php_modf(double x, double *ip)
    pow(-0, y < 0) = NAN, pow(+-1, +-INF or NAN), pow(-INF, y) = NAN, the sign of
    an underflowed pow(x < 0, odd y); fmod(x, +-0) = 0; atan2(+-0, +-0) and
    atan2(+-INF, +-INF) = NAN, atan2(-tiny, x > 0) = +0; log, log10, log2(-0) =
-   NAN; hypot(+-INF, NAN) = NAN; nextafter(x, y) with x == y.  These handle
+   NAN; hypot(+-INF, NAN) = NAN; nextafter(x, y) with x == y; pow() results
+   far beyond the range, which it wraps to 0 or INF (#48).  These handle
    the C99 cases and pass everything else to the C RTL, whose finite results
    are within 1 ulp of glibc's.  The C RTL's sqrt() is not correctly rounded,
    as IEEE 754 requires (sqrt(2.0) is 1 ulp low, and so hypot(1, 1)): it is
@@ -112,11 +113,19 @@ static inline double vms_php_pow(double x, double y)
     if (y < 0) return vms_php_odd_int(y) ? -0.0 : 0.0;
     return vms_php_odd_int(y) ? x : -x;
   }
-  if (x < 0 && y == (trunc)(y)) {
-    double r = (pow)(-x, y);
-    return vms_php_odd_int(y) ? -r : r;
+  {
+    /* The C RTL wraps a result far beyond the range: pow(4294967294, 64) is
+       0, where it overflows to INF (probe r_pow_big, PORTING_LOG #48); the
+       magnitude is above 1 exactly when |x| > 1 and y > 0 or |x| < 1 and
+       y < 0, so a 0 there is an overflow and an INF otherwise an underflow */
+    int neg = x < 0 && vms_php_odd_int(y), big = (fabs(x) > 1) == (y > 0);
+    double r;
+    if (x < 0 && y != (trunc)(y)) return (pow)(x, y);   /* NaN */
+    r = (pow)(fabs(x), y);
+    if (big && r == 0) r = __builtin_inf();
+    else if (!big && isinf(r)) r = 0.0;
+    return neg ? -r : r;
   }
-  return (pow)(x, y);
 }
 static inline double vms_php_fmod(double x, double y)
 {
