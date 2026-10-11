@@ -107,6 +107,27 @@ Each item gets a Phase 0 probe first:
 - **C RTL details:** `sigsetjmp`/`siglongjmp` (Zend bailout), `va_copy`, `getaddrinfo`,
   `poll`, `utime`, `umask`, time zones (`date.timezone` set in `PHP.INI`).
 
+## Progress
+
+| Phase | State | Report |
+|---|---|---|
+| 0 reconnaissance and probes | done | docs/PHASE0.md |
+| 1 dependencies and the build | done | docs/PHASE1.md |
+| 2 language and extensions | **done, waiting for the user's exit review** (2026-10-11) | docs/PHASE2.md |
+| 3 CGI/FastCGI with lighttpd | not started: the user asked to stop before it | |
+| 4 phpBB acceptance | not started; the mysqli tests move here (D14) | |
+| 5 kit and release | not started | |
+
+For a new session:
+- **Read first:** docs/PHASE2.md (status, results and open items), the newest PORTING_LOG
+  entries, and D11–D14.
+- **Commits:** all of Phase 2 is committed locally; nothing is pushed.
+- **The node's build tree** holds the latest build, patches 0001–0019. After a change to a
+  header or a flag, build with `tools/build.sh x86 CLEAN` and then `ALL` (CLAUDE.md).
+- **Test runs:** `tools/phpt.sh x86 <set>`, compared with `out/phpt-<set>-ref.txt`. Tests that
+  leave files behind can break the next run. For a fresh upload, delete the set's tree under the
+  work directory's `PHPT` directory on the node, then `cache/pushed-phpt-<set>-x86.sha`.
+
 ## Phases (stop and report at each exit)
 
 **Phase 0: reconnaissance and probes** (x86, clang):
