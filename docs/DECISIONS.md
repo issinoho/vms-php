@@ -146,7 +146,7 @@ Known limits:
 
 ## D12. phpt tests run without file-protection privileges
 
-**Status:** proposed (2026-10-10, Phase 2).
+**Status:** approved by the user (2026-10-15).
 
 The account that runs the tests on the node holds SYSPRV and READALL, and those override file
 protection: is_readable(), is_writable() and is_executable() return true after chmod(0), and

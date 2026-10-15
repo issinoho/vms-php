@@ -137,7 +137,7 @@ noted under "For Phase 3 and 4".
 - **Version limits:** files PHP rewrites and renames keep one version (D13). Files written by
   other means do not.
 - **Unprivileged account:** the pool should run as an unprivileged account. The tests run
-  without file-protection privileges (D12, still proposed).
+  without file-protection privileges (D12).
 - **Visibility of writes:** data a request writes is visible to others after fflush() or
   close. phpBB closes its cache and session files.
 - **exec():** result codes come from `$STATUS`. A command containing `|` or `(` keeps
@@ -149,7 +149,6 @@ noted under "For Phase 3 and 4".
 ## Open items
 
 - **For the user:**
-  - D12 (tests without file-protection privileges) is still proposed.
   - Phase 2 exit review, and the go-ahead for Phase 3.
 - **Not yet traced:** the stray `:` after arginfo_zpp_mismatch's `===DONE===`.
 - **Possible small fixes:**
