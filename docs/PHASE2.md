@@ -1,7 +1,7 @@
 # Phase 2: language and extensions
 
-**Status (2026-10-11):** done, waiting for the user's Phase 2 exit review. Phase 3 has not
-started; the user asked to stop before it. Open items are under "Open items" at the end.
+**Status:** done (2026-10-11); signed off by the user on 2026-10-15. Phase 3 has not
+started yet. Open items are under "Open items" at the end.
 
 The x86-64 node, 2026-10-09 to 2026-10-11. PHP 8.5.11 built with VSI clang (LP64) and patches
 0001–0019 plus `overlay/vmsport`, measured against the Linux reference build (`cache/refbuild`:
@@ -148,8 +148,6 @@ noted under "For Phase 3 and 4".
 
 ## Open items
 
-- **For the user:**
-  - Phase 2 exit review, and the go-ahead for Phase 3.
 - **Not yet traced:** the stray `:` after arginfo_zpp_mismatch's `===DONE===`.
 - **Possible small fixes:**
   - chmod(f, 0) could map to mode 01000, which gives a true 0000 (#42).

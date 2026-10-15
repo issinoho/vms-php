@@ -113,8 +113,8 @@ Each item gets a Phase 0 probe first:
 |---|---|---|
 | 0 reconnaissance and probes | done | docs/PHASE0.md |
 | 1 dependencies and the build | done | docs/PHASE1.md |
-| 2 language and extensions | **done, waiting for the user's exit review** (2026-10-11) | docs/PHASE2.md |
-| 3 CGI/FastCGI with lighttpd | not started: the user asked to stop before it | |
+| 2 language and extensions | done; signed off by the user (2026-10-15) | docs/PHASE2.md |
+| 3 CGI/FastCGI with lighttpd | next: waiting for the user to choose how `VMSPHP$ROOT` is defined | |
 | 4 phpBB acceptance | not started; the mysqli tests move here (D14) | |
 | 5 kit and release | not started | |
 
