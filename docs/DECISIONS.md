@@ -188,3 +188,20 @@ The host has no MySQL server, so there is no Linux reference run for mysqli. Alt
 considered:
 - Start vms-mariadb's server for Phase 2, in its own test database.
 - Run the set against the board's database. No: the board is the user's.
+
+## D15. `VMSPHP$ROOT` for the Phase 3 test pool is a GROUP logical
+
+**Status:** approved by the user (2026-10-15, before Phase 3).
+
+vms-lighttpd's `PHP_POOL.COM` starts each FastCGI worker with `RUN/DETACHED LOGINOUT`, which
+creates a new job. The worker's `.COM` names the image as `<php-root>:[BIN]PHP_CGI.EXE`, and
+PHP's built-in php.ini path is `/vmsphp$root/etc`, so the worker must be able to translate
+`VMSPHP$ROOT` itself. A process or job logical in the session that starts the pool is not
+inherited. So for Phase 3, `VMSPHP$ROOT` is a concealed, rooted GROUP logical for the test
+account's UIC group, pointing at the staged install tree in our work directory. Alternatives
+considered:
+- A SYSTEM logical. This is what the kit's `VMSPHP$STARTUP.COM` will do in Phase 5, but it is
+  system-wide and affects every user of the node before the kit exists.
+- Change `PHP_POOL.COM` in vms-lighttpd so each worker's `.COM` defines the root with
+  `define/process`. This needs nothing outside our work directory, but it changes another
+  repository for a test setup; it may still be worth doing for vms-lighttpd `vms3`.

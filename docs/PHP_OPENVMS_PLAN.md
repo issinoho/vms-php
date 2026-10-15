@@ -114,13 +114,13 @@ Each item gets a Phase 0 probe first:
 | 0 reconnaissance and probes | done | docs/PHASE0.md |
 | 1 dependencies and the build | done | docs/PHASE1.md |
 | 2 language and extensions | done; signed off by the user (2026-10-15) | docs/PHASE2.md |
-| 3 CGI/FastCGI with lighttpd | next: waiting for the user to choose how `VMSPHP$ROOT` is defined | |
+| 3 CGI/FastCGI with lighttpd | next; `VMSPHP$ROOT` is a GROUP logical (D15); waiting for the user's go-ahead | |
 | 4 phpBB acceptance | not started; the mysqli tests move here (D14) | |
 | 5 kit and release | not started | |
 
 For a new session:
 - **Read first:** docs/PHASE2.md (status, results and open items), the newest PORTING_LOG
-  entries, and D11–D14.
+  entries, and D11–D15.
 - **Commits:** all of Phase 2 is committed locally; nothing is pushed.
 - **The node's build tree** holds the latest build, patches 0001–0019. After a change to a
   header or a flag, build with `tools/build.sh x86 CLEAN` and then `ALL` (CLAUDE.md).
