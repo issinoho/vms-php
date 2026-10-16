@@ -205,3 +205,49 @@ considered:
 - Change `PHP_POOL.COM` in vms-lighttpd so each worker's `.COM` defines the root with
   `define/process`. This needs nothing outside our work directory, but it changes another
   repository for a test setup; it may still be worth doing for vms-lighttpd `vms3`.
+
+## D16. `USE_ZEND_ALLOC` = "1" for the Phase 3 test pool is a GROUP logical
+
+**Status:** approved by the user (2026-10-16, Phase 3).
+
+The node has a SYSTEM logical `USE_ZEND_ALLOC` = "0", left by an earlier install, and the C
+RTL's getenv() reads logical names, so it turns PHP's memory manager off in every process that
+does not override it (PORTING_LOG #16). The phpt runner defines it in its own process, but
+`PHP_POOL.COM`'s detached workers inherit no process or job logicals (D15). So
+`tools/stage.sh` defines `USE_ZEND_ALLOC` = "1" in the group table of the test account's UIC
+group, which is searched before the system table. The live board's pool runs as LIGHTTPD, in
+another UIC group, and still sees "0". The board needs a permanent answer before the switch in
+Phase 4, and the kit needs one in Phase 5. Alternatives considered:
+- Patch zend_alloc.c so that on VMS it does not take `USE_ZEND_ALLOC` from logical names. The
+  old logical would then not matter anywhere, but this changes upstream behaviour, and
+  DEFINE could no longer switch the allocator off for debugging.
+- Have vms-lighttpd's `PHP_POOL.COM` write `define/process USE_ZEND_ALLOC "1"` into each
+  worker's procedure when the root is `VMSPHP$ROOT`. This changes another repository during
+  testing. It may still belong in vms-lighttpd `vms3`.
+
+## D17. The Phase 3 pool's PHP.INI: P3SETUP's, without the 8.1 kit's opcache lines
+
+**Status:** approved by the user (2026-10-16, Phase 3).
+
+vms-lighttpd's P3SETUP picks its PHP 8.1 template for any root that has `[BIN]PHP_CGI.EXE`.
+That template loads opcache with `zend_extension = php_opcache` from
+`extension_dir = "/php_root/extensions"`, which is the live 8.1 kit's directory. Our opcache is
+built in. After `serve.sh phpsetup`, `tools/p3.sh setup` removes those two lines from
+`[.T3POOL]PHP.INI` and keeps every other setting. Alternatives considered:
+- A template for `VMSPHP$ROOT` in vms-lighttpd, chosen by P3SETUP. Phase 5 adds one in
+  vms-lighttpd `vms3` anyway; until then that repository is left unchanged.
+- Our own complete pool PHP.INI. That would duplicate the template's settings, which could
+  then drift apart.
+
+## D18. test_php.sh's extension check is a known difference: no gd, no pdo_mysql
+
+**Status:** approved by the user (2026-10-16, Phase 3).
+
+vms-lighttpd's `info.php` counts gd and pdo_mysql among the extensions phpBB needs. D3 builds
+neither: phpBB uses mysqli, and gd is out of the first kit. The check "phpBB extensions
+loaded" is run unchanged and expected to fail with exactly `missing: pdo_mysql,gd`, so the
+Phase 3 target is 19 of test_php.sh's 20 checks (the plan's 19 predates its poolstart check)
+plus that one. Alternatives considered:
+- Make the required list a parameter of vms-lighttpd's test, so it passes for our set. This
+  changes another repository.
+- Build pdo and pdo_mysql. The check would still fail on gd.
