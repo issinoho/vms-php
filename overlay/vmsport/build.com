@@ -320,6 +320,8 @@ $ write o "LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY"
 $ write o "ZLIB$ROOT:[LIB]LIBZ.OLB/LIBRARY"
 $ write o "SYS$SHARE:SSL3$LIBSSL_SHR/SHAREABLE"
 $ write o "SYS$SHARE:SSL3$LIBCRYPTO_SHR/SHAREABLE"
+$! the DNS resolver (res_search, dn_expand, dn_skipname as TCPIP$...; D21)
+$ write o "SYS$SHARE:TCPIP$IPC_SHR/SHAREABLE"
 $ close o
 $ write sys$output "BUILD: link ''obj'''image'.EXE"
 $ define/user sys$error sys$output

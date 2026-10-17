@@ -1,0 +1,74 @@
+Subject: standard: DNS functions with the TCP/IP Services resolver on OpenVMS
+
+checkdnsrr(), dns_check_record(), getmxrr() and dns_get_record() need
+res_search(), dn_expand() and dn_skipname().  On OpenVMS they are not in
+the C RTL but in TCPIP$IPC_SHR, as TCPIP$RES_SEARCH and so on (resolv.h
+maps the names), so the functions were left out and phpBB's e-mail check
+(checkdnsrr) was a fatal error (vms-php D21).  The build links that image.
+Two VMS needs here:
+- arpa/nameser.h includes nameser_compat.h (HEADER, C_IN and the T_
+  names) only with BIND_4_COMPAT, and it has already been included by the
+  time dns.c includes it, so dns.c includes nameser_compat.h itself;
+- the resolver takes 32-bit pointers and ACCVIOs on any address above
+  2 GB (probe r_res_search).  The answer and dn_expand() buffers are on
+  the stack, below 2 GB; the name, a zend_string above it, is copied to
+  the stack before res_search().
+---
+--- a/ext/standard/dns.c
++++ b/ext/standard/dns.c
+@@ -43,6 +43,11 @@
+ # define BIND_8_COMPAT 1
+ #endif
+ #include <arpa/nameser.h>
++#ifdef __VMS
++/* HEADER, C_IN and the T_ names: nameser.h includes this only with
++ * BIND_4_COMPAT, and an earlier header has already included it */
++#include <nameser_compat.h>
++#endif
+ #endif
+ #ifdef HAVE_RESOLV_H
+ #include <resolv.h>
+@@ -68,6 +73,26 @@
+ 
+ #include "php_dns.h"
+ 
++#if defined(__VMS) && defined(HAVE_RES_SEARCH)
++/* The TCP/IP Services resolver (TCPIP$RES_SEARCH in TCPIP$IPC_SHR) takes
++ * 32-bit pointers and ACCVIOs on any address above 2 GB (vms-php probe
++ * r_res_search), where LP64 code keeps the name's zend_string.  The answer
++ * and dn_expand() buffers here are on the stack, which is below 2 GB; the
++ * name is copied there too. */
++static int php_vms_res_search(const char *dname, int class, int type, unsigned char *answer, int anslen)
++{
++	char name[NS_MAXDNAME];
++	size_t len = strlen(dname);
++
++	if (len >= sizeof(name)) {
++		h_errno = NO_RECOVERY;
++		return -1;
++	}
++	memcpy(name, dname, len + 1);
++	return res_search(name, class, type, answer, anslen);
++}
++#endif
++
+ /* type compat */
+ #ifndef DNS_T_A
+ #define DNS_T_A		1
+--- a/ext/standard/php_dns.h
++++ b/ext/standard/php_dns.h
+@@ -41,8 +41,14 @@
+ #define php_dns_errno(handle) handle->res_h_errno
+ 
+ #elif defined(HAVE_RES_SEARCH)
++#ifdef __VMS
++/* the name below 2 GB first: dns.c */
++#define php_dns_search(res, dname, class, type, answer, anslen) \
++			php_vms_res_search(dname, class, type, answer, anslen)
++#else
+ #define php_dns_search(res, dname, class, type, answer, anslen) \
+ 			res_search(dname, class, type, answer, anslen)
++#endif
+ #define php_dns_free_handle(res) /* noop */
+ #define php_dns_errno(handle) h_errno
+ 

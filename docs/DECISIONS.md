@@ -303,3 +303,31 @@ Alternatives considered:
   not do.
 - Send through an external relay with TLS and credentials. This changes how the board sends
   mail, only to test it.
+
+## D21. PHP's DNS functions use the TCP/IP Services resolver
+
+**Status:** approved by the user (2026-10-17, Phase 4).
+
+phpBB checks the domain of every email address a user enters with `checkdnsrr()`. Our build
+had no DNS functions, so changing the admin's email address was a fatal error (HTTP 500).
+The Phase 0 probes looked for `res_search`, `dn_expand` and `dn_skipname` in the C RTL only.
+On OpenVMS, `resolv.h` maps them to `TCPIP$RES_SEARCH` and the other `TCPIP$` names, which
+`SYS$SHARE:TCPIP$IPC_SHR` exports. Probe r_res_search shows they work from LP64 clang code:
+MX lookups parse correctly, and a missing domain gives `HOST_NOT_FOUND`. Like
+`gethostbyname_r` (#51), they ACCVIO on any pointer above 2 GB.
+
+So:
+- `php_config.overrides` sets `HAVE_RES_SEARCH`, `HAVE_DN_EXPAND` and `HAVE_DN_SKIPNAME`
+  (there is no `res_nsearch`);
+- `BUILD.COM` links `TCPIP$IPC_SHR`;
+- patch 0021 defines `BIND_4_COMPAT` for `nameser.h` and copies the host name to the stack
+  before `res_search()`.
+
+`dns.c`'s answer and `dn_expand()` buffers are already local arrays on the stack. That is
+below 2 GB: the main stack is in P1, and fiber stacks come from `_malloc32` (patch 0006).
+This brings in `checkdnsrr`/`dns_check_record`, `getmxrr`/`dns_get_mx` and `dns_get_record`.
+
+Alternatives considered:
+- Leave them out, and turn off phpBB's "check e-mail domain for valid MX record". That hides
+  a missing standard function from every other script and from the kit.
+- `res_nsearch` with a private state: it does not exist on VMS.

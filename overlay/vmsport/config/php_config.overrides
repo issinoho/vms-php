@@ -121,3 +121,11 @@ HAVE_SYSLOG_H =                       # vmsport/include/compat/syslog.h + vms_sy
 PHP_CAN_SUPPORT_PROC_OPEN -           # no fork (D5)
 ZEND_CHECK_STACK_LIMIT -              # zend_call_stack.c has no VMS method; stack > 64 MB (r_zstack)
 ZEND_SIGNALS -                        # deferred signal handling off: only SIGALRM is used (D9)
+
+# --- DNS resolver (D21): not in DECC$SHR, so probes g_res_search, g_dn_expand and
+# g_dn_skipname (C RTL only) failed; resolv.h maps them to TCPIP$RES_SEARCH etc.,
+# exported by TCPIP$IPC_SHR, which BUILD.COM links (probe r_res_search).
+# No res_nsearch on VMS: HAVE_RES_NSEARCH stays the probe's (undefined).
+HAVE_RES_SEARCH 1
+HAVE_DN_EXPAND 1
+HAVE_DN_SKIPNAME 1
