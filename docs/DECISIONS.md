@@ -370,8 +370,9 @@ our work directory, which gives world no access. The user chose a separate insta
 by default `DKA0:[VMSPHP]` beside the 8.1 kit's `DKA0:[PHP]`. `tools/vms_install_tree.com`,
 run by the user with SYSPRV:
 - copies the staged images, `PHP.INI` and `CACERT.PEM` there, owned by SYSTEM, W:RE;
-- creates `[TMP.OPCACHE]` owned by LIGHTTPD, with an ACL that lets a second identifier (our
-  account, for the test pool) write to it too;
+- creates `[TMP.OPCACHE]` owned by LIGHTTPD. Its ACL for a second identifier does not help:
+  opcache checks the directory with the C RTL's `access()`, which ignores ACLs (#61), so the
+  test pool keeps its own file cache in `[.T3POOL.OPCACHE]`;
 - prints the `DEFINE/SYSTEM` that points `VMSPHP$ROOT` at the new tree.
 
 `tools/vms_stage.com` then notes that `VMSPHP$ROOT` is not the staged tree. Restaging

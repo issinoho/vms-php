@@ -21,14 +21,20 @@ export PHP_ROOT_NAME='VMSPHP$ROOT'
 . "$lt/upstream.conf"
 read -r _ _ _ _ _ WORKDIR _ < <(awk -v n="$node" '$1==n' "$lt/tools/nodes.conf")
 tree="${WORKDIR%]}.$(echo "$UPSTREAM_NAME-$UPSTREAM_VERSION" | tr . _ | tr a-z A-Z)]"
+# UNIX form of [.T3POOL.OPCACHE] under the tree (rooted device kept, as PHP takes it)
+ufcache=$(echo "${tree%]}.T3POOL.OPCACHE]" | sed 's/^\([^:]*\):\[/\/\1\//; s/\]$//; s/\./\//g')
 
 # D19: compiled scripts also go to a file cache, so a worker whose image
 # restarts loads them instead of compiling them again; #57: the CA bundle
 poolini() {
+    # the test pool's own file cache: the installed VMSPHP$ROOT:[TMP.OPCACHE] is
+    # LIGHTTPD's, and an ACL does not satisfy opcache's access() check (D23, #61)
+    "$lt/tools/vms.sh" "$node" dcl "set default $tree" \
+        'if f$search("[.T3POOL]OPCACHE.DIR") .eqs. "" then create/directory [.T3POOL.OPCACHE]' >/dev/null
     "$lt/tools/vms.sh" "$node" dcl "set default $tree" \
         'search/match=nor/output=[.T3POOL]PHP.TMP [.T3POOL]PHP.INI "opcache.file_cache","openssl.cafile"' \
         'open/append f [.T3POOL]PHP.TMP' \
-        'write f "opcache.file_cache = ""/vmsphp$root/tmp/opcache"""' \
+        "write f \"opcache.file_cache = \"\"$ufcache\"\"\"" \
         'write f "openssl.cafile = ""/vmsphp$root/etc/cacert.pem"""' \
         'close f' \
         'delete/nolog [.T3POOL]PHP.INI;*' \
