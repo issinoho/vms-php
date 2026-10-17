@@ -191,7 +191,7 @@ considered:
 
 ## D15. `VMSPHP$ROOT` for the Phase 3 test pool is a GROUP logical
 
-**Status:** approved by the user (2026-10-15, before Phase 3).
+**Status:** approved by the user (2026-10-15, before Phase 3); superseded by D22 (2026-10-17).
 
 vms-lighttpd's `PHP_POOL.COM` starts each FastCGI worker with `RUN/DETACHED LOGINOUT`, which
 creates a new job. The worker's `.COM` names the image as `<php-root>:[BIN]PHP_CGI.EXE`, and
@@ -208,7 +208,7 @@ considered:
 
 ## D16. `USE_ZEND_ALLOC` = "1" for the Phase 3 test pool is a GROUP logical
 
-**Status:** approved by the user (2026-10-16, Phase 3).
+**Status:** approved by the user (2026-10-16, Phase 3); superseded by D22 (2026-10-17).
 
 The node has a SYSTEM logical `USE_ZEND_ALLOC` = "0", left by an earlier install, and the C
 RTL's getenv() reads logical names, so it turns PHP's memory manager off in every process that
@@ -331,3 +331,32 @@ Alternatives considered:
 - Leave them out, and turn off phpBB's "check e-mail domain for valid MX record". That hides
   a missing standard function from every other script and from the kit.
 - `res_nsearch` with a private state: it does not exist on VMS.
+
+## D22. `VMSPHP$ROOT` and `USE_ZEND_ALLOC` are SYSTEM logicals (supersedes D15, D16)
+
+**Status:** approved by the user (2026-10-17, Phase 4, before the board switch-over).
+
+The live board's pool runs as LIGHTTPD, which does not see our UIC group's GROUP logicals.
+The user defined both names in the system table, with the same values the group ones had:
+- `VMSPHP$ROOT`, concealed and rooted at the staged tree, `<workdir>.VMSPHP.]`;
+- `USE_ZEND_ALLOC` = "1". This replaced the system value "0" left by an earlier install
+  (#16).
+
+Defining them needs SYSNAM, so `tools/vms_stage.com` no longer defines anything. It warns if
+the system `VMSPHP$ROOT` points elsewhere or `USE_ZEND_ALLOC` is not "1". Our group
+definitions were removed, leaving one source.
+
+Consequences:
+- **The live 8.1 pool** (`PHP_ROOT`) also reads `USE_ZEND_ALLOC`. Each of its workers moves to
+  Zend's memory manager when it next restarts. Rollback: `DEFINE/SYSTEM USE_ZEND_ALLOC "0"`,
+  then restart its workers.
+- **Not in the node's startup:** both definitions are lost at a reboot unless the user adds
+  them there. Phase 5's `VMSPHP$STARTUP.COM` will define them.
+- **LIGHTTPD's access:** the tree is still in our work directory. The live pool's account
+  needs read access to it and write access to `[TMP.OPCACHE]` (D19).
+
+Alternatives considered:
+- Leave the system value at "0" until the switch-over, keeping the group logical for our
+  tests.
+- A per-worker `DEFINE/PROCESS` in vms-lighttpd's `PHP_POOL.COM` for `VMSPHP$ROOT`. This
+  changes another repository, and was D16's rejected alternative.

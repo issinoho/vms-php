@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # stage.sh <node> - the staged install tree <workdir>.VMSPHP] for the Phase 3
 # test pool: the built PHP.EXE and PHP_CGI.EXE in [BIN], tools/install/php.ini
-# as [ETC]PHP.INI, VMSPHP$ROOT as a GROUP logical for it (D15) and
-# USE_ZEND_ALLOC "1" as a GROUP logical (D16).
+# as [ETC]PHP.INI, and a check of the SYSTEM logicals VMSPHP$ROOT and
+# USE_ZEND_ALLOC "1" that point the pool at it (D22; the user defines them).
 # Run after tools/build.sh; the images come from the build tree's [.OBJ_X86_64].
 set -euo pipefail
 top=$(cd "$(dirname "$0")/.." && pwd)
