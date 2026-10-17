@@ -115,14 +115,14 @@ Each item gets a Phase 0 probe first:
 | 1 dependencies and the build | done | docs/PHASE1.md |
 | 2 language and extensions | done; signed off by the user (2026-10-15) | docs/PHASE2.md |
 | 3 CGI/FastCGI with lighttpd | done; signed off by the user (2026-10-17) | docs/PHASE3.md |
-| 4 phpBB acceptance | next; the mysqli tests move here (D14); the decisions in PHASE3.md's open items come first | |
+| 4 phpBB acceptance | test-board checks done (2026-10-17); waiting for the user's review; the board switch-over not started | docs/PHASE4.md |
 | 5 kit and release | not started | |
 
 For a new session:
-- **Read first:** docs/PHASE3.md (status, results, open items and the decisions waiting for
-  the user), PORTING_LOG #52–#54, and D15–D19.
-- **Commits:** all of Phase 3 is committed locally; nothing is pushed.
-- **The node's build tree** holds the latest build, patches 0001–0020; `tools/stage.sh x86`
+- **Read first:** docs/PHASE4.md (results, the switch-over prerequisites and open items),
+  PORTING_LOG #55–#59, and D20–D21.
+- **Commits:** everything is committed locally; nothing is pushed.
+- **The node's build tree** holds the latest build, patches 0001–0021; `tools/stage.sh x86`
   copies it into the staged `VMSPHP$ROOT` tree the test pool runs. After a change to a
   header or a flag, build with `tools/build.sh x86 CLEAN` and then `ALL` (CLAUDE.md).
 - **Test runs:** `tools/phpt.sh x86 <set>`, compared with `out/phpt-<set>-ref.txt`. Tests that
