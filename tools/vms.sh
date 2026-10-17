@@ -3,6 +3,7 @@
 #
 #   vms.sh <node> put    <local-file>... [-- <subdir>]  upload files (to workdir or workdir/subdir)
 #   vms.sh <node> putdir <local-dir> <subdir>           upload every file in a directory (flat)
+#   vms.sh <node> putr   <local-dir> <remote-dir>       upload a directory tree (VMS_SFTPDIR: base)
 #   vms.sh <node> get    <remote-relpath> <local-file>  download a file relative to the workdir
 #   vms.sh <node> dcl    '<dcl command>'                run one DCL command, print its output
 #   vms.sh <node> run    <local.com> [params...]        upload + run a procedure interactively
@@ -89,6 +90,12 @@ put)
 putdir)
     [ $# -eq 2 ] || usage
     sftp_batch "cd $SFTPDIR" "-mkdir $2" "cd $2" "lcd $1" "mput *"
+    ;;
+putr)
+    # a directory tree, e.g. phpBB for vms-lighttpd's Phase 4 board; VMS_SFTPDIR
+    # names another base directory (another repository's nodes.conf column 7)
+    [ $# -eq 2 ] || usage
+    sftp_batch "cd ${VMS_SFTPDIR:-$SFTPDIR}" "put -r $1 $2"
     ;;
 get)
     [ $# -eq 2 ] || usage
