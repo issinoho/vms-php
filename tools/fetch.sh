@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # fetch.sh - download the PHP release tarball named in upstream.conf into
 # cache/, verify its SHA-256, and verify its GPG signature against
-# keys/php-8.5-signing-key.asc.
+# keys/php-8.5-signing-key.asc.  Also the pinned CA bundle (SHA-256).
 set -euo pipefail
 
 top=$(cd "$(dirname "$0")/.." && pwd)
@@ -29,3 +29,11 @@ echo "$status" | grep -q "^\[GNUPG:\] VALIDSIG .* $UPSTREAM_GPG_KEY\$" ||
     { echo "fetch: no valid signature by $UPSTREAM_GPG_KEY on $tarball" >&2; exit 1; }
 echo "fetch: signature OK ($UPSTREAM_GPG_KEY)"
 echo "fetch: $tarball"
+
+# the CA bundle for openssl.cafile (PORTING_LOG #57)
+cabundle=$cache/$(basename "$CA_BUNDLE_URL")
+[ -f "$cabundle" ] || { echo "fetch: downloading $CA_BUNDLE_URL"
+                        curl -fsSL -o "$cabundle.tmp" "$CA_BUNDLE_URL"; mv "$cabundle.tmp" "$cabundle"; }
+echo "$CA_BUNDLE_SHA256  $cabundle" | sha256sum -c --quiet - ||
+    { echo "fetch: SHA-256 mismatch for $cabundle" >&2; exit 1; }
+echo "fetch: $cabundle"

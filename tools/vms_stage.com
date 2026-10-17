@@ -3,6 +3,7 @@ $!
 $! P1: the build's image directory, e.g. DISK$X:[USER.VMS_PHP.PHP-8_5_11.OBJ_X86_64]
 $! P2: the install tree's top directory, e.g. DISK$X:[USER.VMS_PHP.VMSPHP]
 $! P3: the PHP.INI for [ETC] (uploaded by tools/stage.sh)
+$! P4: the CA bundle for [ETC]CACERT.PEM, openssl.cafile (PORTING_LOG #57)
 $! Copies PHP.EXE and PHP_CGI.EXE into [BIN] and PHP.INI into [ETC], creates
 $! [TMP] and [TMP.OPCACHE], and checks the SYSTEM logicals the user defined
 $! (D22): VMSPHP$ROOT, concealed and rooted at this tree, and USE_ZEND_ALLOC
@@ -21,6 +22,7 @@ $ if f$search(top + ".TMP]OPCACHE.DIR") .eqs. "" then create/directory 'top'.TMP
 $ copy/nolog 'obj'PHP.EXE 'top'.BIN]PHP.EXE
 $ copy/nolog 'obj'PHP_CGI.EXE 'top'.BIN]PHP_CGI.EXE
 $ copy/nolog 'ini' 'top'.ETC]PHP.INI
+$ if p4 .nes. "" then copy/nolog 'p4' 'top'.ETC]CACERT.PEM
 $ purge/nolog 'top'...]*.*
 $! the SYSTEM logicals (D22): warn if missing or pointing elsewhere
 $ dev = f$getdvi(f$parse(top + "]",,,"DEVICE","NO_CONCEAL"), "FULLDEVNAM")
@@ -32,7 +34,7 @@ $ if f$trnlnm("USE_ZEND_ALLOC","LNM$SYSTEM_TABLE") .nes. "1" then -
     say "STAGE: warning: SYSTEM USE_ZEND_ALLOC is not ""1"" (D22, PORTING_LOG #16)"
 $ show logical/full VMSPHP$ROOT
 $ show logical/full USE_ZEND_ALLOC
-$ directory/size/date VMSPHP$ROOT:[BIN]*.EXE, VMSPHP$ROOT:[ETC]PHP.INI
+$ directory/size/date VMSPHP$ROOT:[BIN]*.EXE, VMSPHP$ROOT:[ETC]PHP.INI, VMSPHP$ROOT:[ETC]CACERT.PEM
 $ define/user sys$error sys$output
 $ mcr VMSPHP$ROOT:[BIN]PHP_CGI.EXE -v
 $ say "STAGE: done"
