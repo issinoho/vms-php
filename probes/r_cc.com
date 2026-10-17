@@ -24,7 +24,13 @@ $ here = f$environment("DEFAULT")
 $ set default 'top'
 $ define/user sys$error sys$output
 $ define/user decc$argv_parse_style enable
-$ clang "@''rspunix'" -c 'p2' -o 'p3' 'p4'
+$! assembler sources take no C flags (the response file force-includes headers)
+$ if f$edit(f$extract(f$length(p2) - 2, 2, p2),"UPCASE") .eqs. ".S"
+$ then
+$   clang -c 'p2' -o 'p3' 'p4'
+$ else
+$   clang "@''rspunix'" -c 'p2' -o 'p3' 'p4'
+$ endif
 $ st = $status
 $ set default 'here'
 $ exit st
