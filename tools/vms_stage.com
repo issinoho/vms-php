@@ -29,7 +29,9 @@ $ dev = f$getdvi(f$parse(top + "]",,,"DEVICE","NO_CONCEAL"), "FULLDEVNAM")
 $ dir = f$parse(top + "]",,,"DIRECTORY","NO_CONCEAL") - "]"
 $ want = f$edit(dev + dir + ".]", "UPCASE")
 $ have = f$edit(f$trnlnm("VMSPHP$ROOT","LNM$SYSTEM_TABLE"), "UPCASE")
-$ if have .nes. want then say "STAGE: warning: SYSTEM VMSPHP$ROOT is """, have, """, not ", want, " (D22)"
+$! the live pool runs an installed copy (D23): then VMSPHP$ROOT points there
+$ if have .nes. want then say "STAGE: note: SYSTEM VMSPHP$ROOT is """, have, """, not this tree; ", -
+    "install the staged tree there with VMS_INSTALL_TREE.COM (D23)"
 $ if f$trnlnm("USE_ZEND_ALLOC","LNM$SYSTEM_TABLE") .nes. "1" then -
     say "STAGE: warning: SYSTEM USE_ZEND_ALLOC is not ""1"" (D22, PORTING_LOG #16)"
 $ show logical/full VMSPHP$ROOT

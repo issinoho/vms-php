@@ -360,3 +360,25 @@ Alternatives considered:
   tests.
 - A per-worker `DEFINE/PROCESS` in vms-lighttpd's `PHP_POOL.COM` for `VMSPHP$ROOT`. This
   changes another repository, and was D16's rejected alternative.
+
+## D23. The live board runs an installed copy of PHP, not the staged development tree
+
+**Status:** approved by the user (2026-10-17, Phase 4, before the board switch-over).
+
+The live board's pool runs as LIGHTTPD, under its own UIC `[LIGHTTPD]`. The staged tree is in
+our work directory, which gives world no access. The user chose a separate install location,
+by default `DKA0:[VMSPHP]` beside the 8.1 kit's `DKA0:[PHP]`. `tools/vms_install_tree.com`,
+run by the user with SYSPRV:
+- copies the staged images, `PHP.INI` and `CACERT.PEM` there, owned by SYSTEM, W:RE;
+- creates `[TMP.OPCACHE]` owned by LIGHTTPD, with an ACL that lets a second identifier (our
+  account, for the test pool) write to it too;
+- prints the `DEFINE/SYSTEM` that points `VMSPHP$ROOT` at the new tree.
+
+`tools/vms_stage.com` then notes that `VMSPHP$ROOT` is not the staged tree. Restaging
+changes nothing on the live board until the tree is installed again. Phase 5's kit installs
+to the same place.
+
+Alternatives considered:
+- ACLs on our own tree for LIGHTTPD (read and execute, plus traverse on `[.VMS_PHP]`). This is
+  quick, but the live board would run whatever was last staged, and depend on a development
+  work directory.
