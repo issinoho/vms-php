@@ -26,6 +26,16 @@ configuration and `cache/db.secrets`. It was rebuilt like this:
      `extension:disable` turned it off.
 4. `serve.sh x86 phpbbsetup` wrote `[.T4]`, and the test server was restarted on it.
 
+### Reinstall after the database loss (#60)
+
+Late on 2026-10-17 the stalled MariaDB server was stopped with a kill. The test database's
+tables were MyISAM, the server's default engine, and 64 of its 69 tables came back empty. The
+user dropped and recreated it, and the board was installed again the same way. All 69 tables
+were then converted to Aria (probe r_phpbb_aria.php), the crash-safe engine the board's
+earlier `phpbb3319` database uses. `test_phpbb.py` passed 14 of 14 again, and a 10-minute
+load run with the same guest pages and 4 clients served 588 requests, all 200, with a mean of
+3.9 s and no worker errors.
+
 ## Results
 
 | Plan item | Result |
@@ -90,8 +100,13 @@ and restarts it. Rollback is setting it back. These need to be settled first:
 3. **Privileges:** the test pool ran with our account's privileges, while LIGHTTPD is
    unprivileged. phpBB's file writes (`cache/`, `store/`, `files/`) under LIGHTTPD have not
    been tested.
-4. **MariaDB:** it stalled twice today (#59). Until that is understood, a stall during the
-   switch-over would look like a PHP failure.
+4. **MariaDB:** it stalled twice today (#59), and the kill that ended the second stall
+   emptied the test database's MyISAM tables (#60). Until the stalls are understood, one
+   during the switch-over would look like a PHP failure. The server's default engine is
+   MyISAM, so any database created on it without an engine is not crash-safe.
+5. **The logicals:** `VMSPHP$ROOT` and `USE_ZEND_ALLOC` are now SYSTEM logicals (D22). The
+   live 8.1 pool moves to Zend's memory manager as its workers restart. Neither definition
+   is in the node's startup yet.
 
 ## Open items
 
