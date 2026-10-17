@@ -17,3 +17,4 @@
 0017-ctype-c-locale-ascii-vms.patch
 0018-dns-hostent-32bit-entries-vms.patch
 0019-network-gethostbyname-not-r-vms.patch
+0020-opcache-unlock-all-by-byte-vms.patch

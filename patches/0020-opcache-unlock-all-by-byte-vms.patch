@@ -1,0 +1,44 @@
+Subject: opcache: unlock its lock file byte by byte on OpenVMS
+
+accel_unlock_all() drops opcache's locks at the end of every request with
+one F_UNLCK over the whole file (l_start 0, l_len 0).  On OpenVMS, an unlock
+wider than the lock it releases (the 1-byte usage lock that
+accel_activate_add() took at request start) costs ~440 bytes of the C
+RTL's 32-bit (P0) memory each time, and it is never given back: each pool
+worker grew by ~434 bytes per request (vms-php PORTING_LOG #53, probes
+r_fcntl_leak2, r_fcntl_leak3).  Unlocks of exactly the bytes held, and of
+bytes not held, cost nothing.  Every lock opcache takes on lock_file is a
+single byte (0 write, 1 usage, 2 restart), so on VMS the three are released
+one at a time.
+---
+--- a/ext/opcache/ZendAccelerator.c
++++ b/ext/opcache/ZendAccelerator.c
+@@ -400,6 +400,20 @@
+ 
+ 	mem_usage_unlock_all.l_type = F_UNLCK;
+ 	mem_usage_unlock_all.l_whence = SEEK_SET;
++#ifdef __VMS
++	/* On OpenVMS, releasing a held lock with a wider range (here the
++	 * whole file) leaks ~440 bytes of the C RTL's 32-bit memory on every
++	 * call, once per request (vms-php PORTING_LOG #53, probe
++	 * r_fcntl_leak3); unlocks of exactly the bytes held do not.  Every
++	 * lock taken on lock_file is one byte: 0 (shared memory write lock),
++	 * 1 (usage) and 2 (restart), so release them one at a time. */
++	mem_usage_unlock_all.l_len = 1;
++	for (mem_usage_unlock_all.l_start = 0; mem_usage_unlock_all.l_start < 3; mem_usage_unlock_all.l_start++) {
++		if (fcntl(lock_file, F_SETLK, &mem_usage_unlock_all) == -1) {
++			zend_accel_error(ACCEL_LOG_DEBUG, "UnlockAll:  %s (%d)", strerror(errno), errno);
++		}
++	}
++#else
+ 	mem_usage_unlock_all.l_start = 0;
+ 	mem_usage_unlock_all.l_len = 0;
+ 
+@@ -407,6 +421,7 @@
+ 		zend_accel_error(ACCEL_LOG_DEBUG, "UnlockAll:  %s (%d)", strerror(errno), errno);
+ 	}
+ #endif
++#endif
+ }
+ 
+ /* Interned strings support */

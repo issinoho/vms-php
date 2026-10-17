@@ -57,6 +57,11 @@ $ then
 $   write sys$error "BUILD: no dependency work directory (P3)"
 $   goto done
 $ endif
+$! a concealed root must name a physical device: resolve rooted logicals
+$! such as USER$ROOT first (PORTING_LOG #54)
+$ deps = f$getdvi(f$parse(deps,,,"DEVICE","NO_CONCEAL"), "FULLDEVNAM") + -
+    f$parse(deps,,,"DIRECTORY","NO_CONCEAL")
+$ deps = deps - "][" - ".]["
 $ open/read v [.VMSPORT]DEPS.ENV
 $deps_loop:
 $ read/end=deps_done v line
