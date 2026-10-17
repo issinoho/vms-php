@@ -1,8 +1,8 @@
 # Phase 4: phpBB acceptance
 
-**Status:** the test board's checks are done (2026-10-17); waiting for the user's review.
-The board switch-over, which the plan does with the user, has not started. Its prerequisites
-and the open items are at the end.
+**Status:** the test board's checks are done (2026-10-17), and the live board was switched to
+our PHP on 2026-10-17 at 17:33. After four fixes it works: browsing, logins, the ACP and the
+registration CAPTCHA (2026-10-18). Waiting for the user's review. Open items are at the end.
 
 The x86-64 node, 2026-10-17. PHP 8.5.11 built with VSI clang (LP64), patches 0001–0021 plus
 `overlay/vmsport`. It runs as vms-lighttpd's FastCGI test pool (`LTPHP_19100`–`19103`, the
@@ -83,7 +83,26 @@ The 8.1.23 kit took 10–18 s for a first request.
 | `hrtime()` returns `false` | open (phpBB does not use it) | #58 |
 | The `network` .phpt set, first run: 47 pass on VMS, 55 on Linux; its 3 DNS tests pass | 4 VMS-only failures, below | #57 |
 
-## For the switch-over (plan: with the user)
+## The switch-over (2026-10-17/18)
+
+The installed tree is `DKA0:[VMSPHP]` (D23), with `VMSPHP$ROOT` and `USE_ZEND_ALLOC` as
+SYSTEM logicals (D22). The user changed the pool's `PHP.INI` for 8.5, set
+`vmslighttpd_php_root` to `VMSPHP$ROOT` and restarted the service. What followed:
+
+| Time | Problem | Fix | Ref. |
+|---|---|---|---|
+| 17:29–17:31 | before the switch, the 8.1 workers that restarted crashed in Zend MM: `USE_ZEND_ALLOC "1"` system-wide, and the old "0" was 8.1's workaround | ended by the switch; a rollback must set "0" again (D22) | #63 |
+| 17:33–17:46 | every page HTTP 503, "SQL ERROR [mysqli] Operation not permitted [2002]": the board's `$dbhost = 'localhost'` meant a Unix socket | the user set `127.0.0.1`; patch 0022 makes `localhost` use TCP | #62 |
+| 17:46– | no user could log in: the passwords are argon2id hashes, and our build had only bcrypt | D24: the Argon2 reference library compiled in; installed 00:17 | #64 |
+| 00:19– | locked out after the failed logins; the GD CAPTCHA image HTTP 500 (no GD, D3) | the user reset the login attempts and chose "Simple image" (`nogd`) in the ACP | #65 |
+
+Also during the switch-over:
+- `access()` ignores ACLs, so the test pool keeps its own opcache file cache (#61).
+- The board's `$dbhost` stays `127.0.0.1`.
+- The node rebooted at 23:41. `VMSPHP$ROOT` and `USE_ZEND_ALLOC` were defined again
+  afterwards.
+
+## Before the switch-over (the checklist as it stood)
 
 The plan's last Phase 4 step sets `vmslighttpd_php_root` to `VMSPHP$ROOT` on the live board
 and restarts it. Rollback is setting it back. These need to be settled first:
