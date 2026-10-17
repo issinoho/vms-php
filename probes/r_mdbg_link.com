@@ -5,6 +5,11 @@ $ set noon
 $ set process/parse_style=extended
 $ top = p1
 $ deps = p2
+$! a concealed root must name a physical device: resolve rooted logicals
+$! such as USER$ROOT first
+$ deps = f$getdvi(f$parse(deps,,,"DEVICE","NO_CONCEAL"), "FULLDEVNAM") + -
+    f$parse(deps,,,"DIRECTORY","NO_CONCEAL")
+$ deps = deps - "][" - ".]["
 $ here = f$environment("DEFAULT")
 $ @'here'r_cc.com 'top' ../PHP_PROBE/r_mdbg.c ../PHP_PROBE/r_mdbg.obj
 $ if .not. $status then exit $status
