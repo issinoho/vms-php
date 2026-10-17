@@ -19,3 +19,4 @@
 0019-network-gethostbyname-not-r-vms.patch
 0020-opcache-unlock-all-by-byte-vms.patch
 0021-dns-tcpip-resolver-vms.patch
+0022-mysqlnd-localhost-tcp-vms.patch

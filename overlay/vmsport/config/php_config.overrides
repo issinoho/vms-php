@@ -129,3 +129,8 @@ ZEND_SIGNALS -                        # deferred signal handling off: only SIGAL
 HAVE_RES_SEARCH 1
 HAVE_DN_EXPAND 1
 HAVE_DN_SKIPNAME 1
+
+# --- Argon2 (D24): password_hash()/password_verify() with argon2i/argon2id. The
+# board's PHP 8.1 kit stored its users' passwords as argon2id. The reference library
+# is compiled in from vmsport/argon2 (tools/prepare.sh, BUILD.COM).
+HAVE_ARGON2LIB 1

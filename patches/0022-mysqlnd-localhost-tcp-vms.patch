@@ -1,0 +1,28 @@
+Subject: mysqlnd: connect to "localhost" over TCP on OpenVMS
+
+For the host name "localhost", mysqlnd connects through the Unix-domain
+socket unix:///tmp/mysql.sock (or mysqli.default_socket).  OpenVMS has no
+usable Unix-domain sockets for this, so mysqli_connect("localhost", ...)
+failed at once with 2002 "Operation not permitted".  phpBB's installer
+writes $dbhost = 'localhost' by default, and the board switched to this
+PHP was down until its config.php said 127.0.0.1 (vms-php PORTING_LOG
+#62).  On VMS, "localhost" now takes the TCP path, tcp://localhost:port,
+as any other host name does.
+---
+--- a/ext/mysqlnd/mysqlnd_connection.c
++++ b/ext/mysqlnd/mysqlnd_connection.c
+@@ -524,7 +524,13 @@
+ {
+ 	MYSQLND_STRING transport;
+ 	DBG_ENTER("mysqlnd_conn_data::get_scheme");
+-#ifndef PHP_WIN32
++#if defined(__VMS)
++	/* OpenVMS has no usable Unix-domain sockets for this: connecting to
++	 * "localhost" as unix:///tmp/mysql.sock fails at once with "Operation
++	 * not permitted" (2002), as phpBB's default dbhost does (vms-php
++	 * PORTING_LOG #62).  "localhost" takes the TCP path below. */
++	if (0) {
++#elif !defined(PHP_WIN32)
+ 	if (hostname.l == sizeof("localhost") - 1 && !strncasecmp(hostname.s, "localhost", hostname.l)) {
+ 		DBG_INF_FMT("socket=%s", socket_or_pipe->s? socket_or_pipe->s:"n/a");
+ 		if (!socket_or_pipe->s) {

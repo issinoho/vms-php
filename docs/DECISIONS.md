@@ -347,9 +347,11 @@ the system `VMSPHP$ROOT` points elsewhere or `USE_ZEND_ALLOC` is not "1". Our gr
 definitions were removed, leaving one source.
 
 Consequences:
-- **The live 8.1 pool** (`PHP_ROOT`) also reads `USE_ZEND_ALLOC`. Each of its workers moves to
-  Zend's memory manager when it next restarts. Rollback: `DEFINE/SYSTEM USE_ZEND_ALLOC "0"`,
-  then restart its workers.
+- **The live 8.1 pool** (`PHP_ROOT`) also reads `USE_ZEND_ALLOC`, and 8.1 crashes with Zend's
+  memory manager on: its restarted workers ACCVIOed in `zend_mm_free_heap` until the board
+  moved to 8.5 (#63). So the old "0" was 8.1's workaround. **A rollback to 8.1 must set
+  `DEFINE/SYSTEM USE_ZEND_ALLOC "0"` first,** then restore the pool's `zend_extension` lines
+  and `vmslighttpd_php_root`, then restart the service.
 - **Not in the node's startup:** both definitions are lost at a reboot unless the user adds
   them there. Phase 5's `VMSPHP$STARTUP.COM` will define them.
 - **LIGHTTPD's access:** the tree is still in our work directory. The live pool's account
@@ -383,3 +385,32 @@ Alternatives considered:
 - ACLs on our own tree for LIGHTTPD (read and execute, plus traverse on `[.VMS_PHP]`). This is
   quick, but the live board would run whatever was last staged, and depend on a development
   work directory.
+
+## D24. Argon2 password hashing: the reference library compiled into PHP
+
+**Status:** approved by the user (2026-10-17, Phase 4, after the switch-over).
+
+The live board's users' passwords were hashed by the PHP 8.1 kit with argon2id. phpBB 3.3
+uses the strongest algorithm PHP offers, and the 8.1 kit offers `2y`, `argon2i` and
+`argon2id`. Our build offered only `2y`, so after the switch-over no user could log in.
+phpBB only rehashes a password after a successful login, so the accounts cannot move to
+bcrypt by themselves. The user chose to stay on 8.5 with logins broken while Argon2 is added,
+rather than roll back.
+
+PHP takes Argon2 from libargon2 (`--with-password-argon2`, `HAVE_ARGON2LIB`):
+- **The library:** the Argon2 authors' reference implementation, P-H-C/phc-winner-argon2
+  release 20190702 (its last), pinned in `upstream.conf`. GitHub's tag archive is not signed,
+  so its SHA-256 is pinned at first download.
+- **The build:** `tools/prepare.sh` puts the library's sources in `vmsport/argon2` (`argon2.c`,
+  `core.c`, `encoding.c`, the portable `ref.c` rather than the SSE `opt.c`, `thread.c`,
+  `blake2b.c`, and its headers). `BUILD.COM` compiles them with PHP's own clang flags and
+  links them into both images.
+- **The define:** `php_config.overrides` sets `HAVE_ARGON2LIB`. `gen_build.py` now lets an
+  override with a value turn a host `#undef` line into a `#define`.
+
+Alternatives considered:
+- A sibling repository building libargon2 as a library, like vms-zlib. That is cleaner for
+  reuse, but slower to deliver while the board's logins were down. It could still be split out
+  later.
+- libsodium, which PHP can also use for Argon2. It is a much larger port.
+- Roll back to 8.1 until Argon2 is ready. This needs `USE_ZEND_ALLOC "0"` again (D22, #63).

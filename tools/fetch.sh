@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # fetch.sh - download the PHP release tarball named in upstream.conf into
 # cache/, verify its SHA-256, and verify its GPG signature against
-# keys/php-8.5-signing-key.asc.  Also the pinned CA bundle (SHA-256).
+# keys/php-8.5-signing-key.asc.  Also the pinned CA bundle and Argon2 sources (SHA-256).
 set -euo pipefail
 
 top=$(cd "$(dirname "$0")/.." && pwd)
@@ -37,3 +37,11 @@ cabundle=$cache/$(basename "$CA_BUNDLE_URL")
 echo "$CA_BUNDLE_SHA256  $cabundle" | sha256sum -c --quiet - ||
     { echo "fetch: SHA-256 mismatch for $cabundle" >&2; exit 1; }
 echo "fetch: $cabundle"
+
+# Argon2's reference sources (D24)
+argon2=$cache/phc-winner-argon2-$ARGON2_VERSION.tar.gz
+[ -f "$argon2" ] || { echo "fetch: downloading $ARGON2_URL"
+                      curl -fsSL -o "$argon2.tmp" "$ARGON2_URL"; mv "$argon2.tmp" "$argon2"; }
+echo "$ARGON2_SHA256  $argon2" | sha256sum -c --quiet - ||
+    { echo "fetch: SHA-256 mismatch for $argon2" >&2; exit 1; }
+echo "fetch: $argon2"

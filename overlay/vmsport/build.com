@@ -188,6 +188,20 @@ $ src = "vmsport/vms_files.c"
 $ vsrc = "[.VMSPORT]VMS_FILES.C"
 $ name = "vms_files"
 $ gosub compile_one
+$! Argon2's reference library (D24): password_hash()/password_verify() argon2i/id
+$ i = 0
+$a2_loop:
+$ f = f$element(i, ",", "argon2,core,encoding,ref,thread,blake2/blake2b")
+$ if f .eqs. "," then goto a2_done
+$ i = i + 1
+$ src = "vmsport/argon2/src/" + f + ".c"
+$ vsrc = "[.VMSPORT.ARGON2.SRC]" + f + ".C"
+$ if f .eqs. "blake2/blake2b" then vsrc = "[.VMSPORT.ARGON2.SRC.BLAKE2]BLAKE2B.C"
+$ name = "argon2_" + (f - "blake2/")
+$ flags = ""
+$ gosub compile_one
+$ goto a2_loop
+$a2_done:
 $ write sys$output "BUILD: ''ncomp' compiled, ''failed' failed"
 $ if failed .gt. 0 then goto done
 $!
@@ -315,6 +329,12 @@ $ write o obj, "VMS_SYSLOG.OBJ"
 $ write o obj, "VMS_SHIMS.OBJ"
 $ write o obj, "VMS_STRERROR.OBJ"
 $ write o obj, "VMS_FILES.OBJ"
+$ write o obj, "ARGON2_ARGON2.OBJ"
+$ write o obj, "ARGON2_CORE.OBJ"
+$ write o obj, "ARGON2_ENCODING.OBJ"
+$ write o obj, "ARGON2_REF.OBJ"
+$ write o obj, "ARGON2_THREAD.OBJ"
+$ write o obj, "ARGON2_BLAKE2B.OBJ"
 $ write o "PCRE2$ROOT:[LIB]PCRE2-8.OLB/LIBRARY"
 $ write o "LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY"
 $ write o "ZLIB$ROOT:[LIB]LIBZ.OLB/LIBRARY"

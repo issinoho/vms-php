@@ -41,6 +41,23 @@ done < "$top/patches/series"
 done
 cp -a "$top/overlay/." "$stage/"
 
+# Argon2's reference library (D24): its sources under vmsport/argon2, compiled by
+# BUILD.COM with PHP's flags. Only the library: not opt.c (SSE), bench, genkat, run.
+step "argon2 $ARGON2_VERSION"
+a2=$top/cache/phc-winner-argon2-$ARGON2_VERSION.tar.gz
+[ -f "$a2" ] || die "no $a2 (tools/fetch.sh)"
+a2tmp=$(mktemp -d)
+tar -xzf "$a2" -C "$a2tmp"
+a2src=$a2tmp/phc-winner-argon2-$ARGON2_VERSION
+mkdir -p "$stage/vmsport/argon2/include" "$stage/vmsport/argon2/src/blake2"
+cp "$a2src/include/argon2.h" "$stage/vmsport/argon2/include/"
+for f in argon2.c core.c core.h encoding.c encoding.h ref.c thread.c thread.h test.c; do
+    cp "$a2src/src/$f" "$stage/vmsport/argon2/src/"
+done
+cp "$a2src/src/blake2/"*.h "$a2src/src/blake2/blake2b.c" "$stage/vmsport/argon2/src/blake2/"
+cp "$a2src/LICENSE" "$stage/vmsport/argon2/"
+rm -rf "$a2tmp"
+
 # The host configure depends only on the pristine release and the options.
 stamp=$top/cache/hostconf/.options
 if [ "${RECONFIGURE:-}" = 1 ] || [ ! -f "$stamp" ] ||

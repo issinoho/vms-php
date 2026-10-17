@@ -55,6 +55,13 @@ outl, unreviewed = [], []
 for line in src:
     m = re.match(r'#define (\w+)(?:\s+(.*))?$', line)
     if not m:
+        # a feature the host build leaves out, which VMS has (an override with
+        # a value, e.g. HAVE_ARGON2LIB from the compiled-in reference library)
+        u = re.match(r'/\* #undef (\w+) \*/$', line)
+        if u and overrides.get(u.group(1), '-') not in ('-', '='):
+            outl.append('#define %s %s  /* VMS: overrides */' % (u.group(1), overrides[u.group(1)]))
+            log.append('%-40s %-8s %s' % (u.group(1), 'value', 'overrides (host: undef)'))
+            continue
         outl.append(line)
         continue
     name, value = m.group(1), (m.group(2) or '')
@@ -185,6 +192,7 @@ for t in var('INCLUDES'):
         continue                    # host libxml2 / system headers: replaced below
     inc.append('-I' + (d or '.'))
 inc += ['-I/libxml2$root/include', '-I/pcre2$root/include', '-I/zlib$root/include']
+inc += ['-Ivmsport/argon2/include']    # D24: compiled in by BUILD.COM
 open(os.path.join(out_build, 'includes.txt'), 'w').write('\n'.join(inc) + '\n')
 
 print('gen_build: php_config.h (%d decisions), %d objects (%s)' % (
