@@ -282,3 +282,24 @@ Phase 5. Alternatives considered:
 - `opcache.file_cache_only=1`: no shared segment (20,720 pagelets used against 285,072), but
   every request reads and checks its `.bin` from disk. That took 42.2 s for the same 3,000
   requests, slower than no opcache at all (30.6 s).
+
+## D20. The board's mail goes to the node's own SMTP server on localhost, without TLS
+
+**Status:** approved by the user (2026-10-17, Phase 4).
+
+The board sends mail through the TCP/IP Services SMTP server on the same node: the ACP has
+`smtp_host` localhost, port 25. That server advertises no ESMTP extensions, and so no STARTTLS
+(probe r_smtp_ehlo.php). phpBB uses TLS only when the server offers STARTTLS, so mail never
+goes over TLS between PHP and the server. The plan's acceptance item "SMTP mail over TLS"
+becomes: a test email sent by phpBB's own SMTP code to localhost and delivered. PHP's TLS
+client code is covered elsewhere:
+- Phase 2's openssl tests;
+- `test_php.sh`'s HTTPS checks;
+- `stream_socket_enable_crypto` in r_smtp_ehlo.php, whenever a server offers STARTTLS.
+
+Alternatives considered:
+- Also probe STARTTLS against an external SMTP server (EHLO, STARTTLS, QUIT). This would
+  exercise phpBB's call path, but it reaches outside the node for something the board does
+  not do.
+- Send through an external relay with TLS and credentials. This changes how the board sends
+  mail, only to test it.
