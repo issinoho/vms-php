@@ -1,7 +1,7 @@
 # Phase 3: CGI/FastCGI with lighttpd
 
-**Status:** done (2026-10-17); waiting for the user's exit review. Phase 4 has not started.
-Open items and the decisions still to make are at the end.
+**Status:** done (2026-10-17); signed off by the user on 2026-10-17. Phase 4 has not
+started yet. Open items and the decisions still to make are at the end.
 
 The x86-64 node, 2026-10-16 to 2026-10-17. PHP 8.5.11 built with VSI clang (LP64), patches
 0001–0020 plus `overlay/vmsport`, run as vms-lighttpd's FastCGI test pool. The live board was

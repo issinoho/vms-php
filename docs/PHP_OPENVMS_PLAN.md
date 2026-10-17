@@ -114,8 +114,8 @@ Each item gets a Phase 0 probe first:
 | 0 reconnaissance and probes | done | docs/PHASE0.md |
 | 1 dependencies and the build | done | docs/PHASE1.md |
 | 2 language and extensions | done; signed off by the user (2026-10-15) | docs/PHASE2.md |
-| 3 CGI/FastCGI with lighttpd | done (2026-10-17); waiting for the user's exit review | docs/PHASE3.md |
-| 4 phpBB acceptance | not started; the mysqli tests move here (D14) | |
+| 3 CGI/FastCGI with lighttpd | done; signed off by the user (2026-10-17) | docs/PHASE3.md |
+| 4 phpBB acceptance | next; the mysqli tests move here (D14); the decisions in PHASE3.md's open items come first | |
 | 5 kit and release | not started | |
 
 For a new session:
