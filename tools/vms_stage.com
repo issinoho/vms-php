@@ -16,6 +16,8 @@ $ ini = p3
 $ if f$search(top + ".BIN]*.*") .eqs. "" then create/directory 'top'.BIN]
 $ if f$search(top + ".ETC]*.*") .eqs. "" then create/directory 'top'.ETC]
 $ if f$search(top + ".TMP]*.*") .eqs. "" then create/directory 'top'.TMP]
+$! opcache.file_cache for the pool (D19)
+$ if f$search(top + ".TMP]OPCACHE.DIR") .eqs. "" then create/directory 'top'.TMP.OPCACHE]
 $ copy/nolog 'obj'PHP.EXE 'top'.BIN]PHP.EXE
 $ copy/nolog 'obj'PHP_CGI.EXE 'top'.BIN]PHP_CGI.EXE
 $ copy/nolog 'ini' 'top'.ETC]PHP.INI

@@ -6,20 +6,36 @@
 #   setup  serve.sh phpsetup with PHP_ROOT_NAME=VMSPHP$ROOT, then
 #          [.T3POOL]PHP.INI without the template's zend_extension and
 #          extension_dir lines: they load the PHP 8.1 kit's opcache, and ours
-#          is built in (D17)
+#          is built in (D17); then opcache.file_cache in VMSPHP$ROOT:[TMP.OPCACHE]
+#          (D19). fcache applies only that line to an existing [.T3POOL]PHP.INI
 #   test   test_php.sh; its "phpBB extensions loaded" check fails on gd and
 #          pdo_mysql, which D3 does not build (D18)
 # The rest go to serve.sh unchanged.
 set -euo pipefail
-node=${1:?usage: p3.sh <node> setup|start|stop|poolstart|poolstop|poolstatus|test|log}
-op=${2:?usage: p3.sh <node> setup|start|stop|poolstart|poolstop|poolstatus|test|log}
+node=${1:?usage: p3.sh <node> setup|fcache|start|stop|poolstart|poolstop|poolstatus|test|log}
+op=${2:?usage: p3.sh <node> setup|fcache|start|stop|poolstart|poolstop|poolstatus|test|log}
 lt=${LIGHTTPD_DIR:-$HOME/projects/vms-lighttpd}
 export PHP_ROOT_NAME='VMSPHP$ROOT'
 . "$lt/upstream.conf"
 read -r _ _ _ _ _ WORKDIR _ < <(awk -v n="$node" '$1==n' "$lt/tools/nodes.conf")
 tree="${WORKDIR%]}.$(echo "$UPSTREAM_NAME-$UPSTREAM_VERSION" | tr . _ | tr a-z A-Z)]"
 
+# D19: compiled scripts also go to a file cache, so a worker whose image
+# restarts loads them instead of compiling them again
+fcache() {
+    "$lt/tools/vms.sh" "$node" dcl "set default $tree" \
+        'search/match=nor/output=[.T3POOL]PHP.TMP [.T3POOL]PHP.INI "opcache.file_cache"' \
+        'open/append f [.T3POOL]PHP.TMP' \
+        'write f "opcache.file_cache = ""/vmsphp$root/tmp/opcache"""' \
+        'close f' \
+        'delete/nolog [.T3POOL]PHP.INI;*' \
+        'convert/fdl=[.T2]STMLF.FDL [.T3POOL]PHP.TMP [.T3POOL]PHP.INI' \
+        'delete/nolog [.T3POOL]PHP.TMP;*' \
+        'search [.T3POOL]PHP.INI "opcache."'
+}
+
 case $op in
+fcache) fcache ;;
 setup)
     "$lt/tools/serve.sh" "$node" phpsetup
     "$lt/tools/vms.sh" "$node" dcl "set default $tree" \
@@ -28,6 +44,7 @@ setup)
         'convert/fdl=[.T2]STMLF.FDL [.T3POOL]PHP.TMP [.T3POOL]PHP.INI' \
         'delete/nolog [.T3POOL]PHP.TMP;*' \
         'search [.T3POOL]PHP.INI "extension","opcache.enable"'
+    fcache
     ;;
 test) exec "$lt/tools/test_php.sh" "$node" ;;
 *) exec "$lt/tools/serve.sh" "$node" "$op" ;;

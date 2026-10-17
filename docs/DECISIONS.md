@@ -251,3 +251,34 @@ plus that one. Alternatives considered:
 - Make the required list a parameter of vms-lighttpd's test, so it passes for our set. This
   changes another repository.
 - Build pdo and pdo_mysql. The check would still fail on gd.
+
+## D19. The pool uses opcache.file_cache next to shared memory; file-cache-only is rejected
+
+**Status:** approved by the user (2026-10-17, Phase 3).
+
+The pool's workers are separate processes started by LOGINOUT, not forks of one parent, so
+each has its own opcache shared memory (`opcache.memory_consumption`, 64 MB in the pool's
+ini). Each starts empty, and it starts empty again after every image restart (a hard timeout,
+`poolstart`). With `opcache.file_cache` a restarted worker loads the compiled scripts from
+disk instead of compiling all of phpBB again. The pool's PHP.INI gets
+`opcache.file_cache = "/vmsphp$root/tmp/opcache"` (`tools/p3.sh setup`, or `fcache` alone),
+and `tools/vms_stage.com` creates `[TMP.OPCACHE]`.
+
+Tested with probes/r_fc.php (an enum, an interface, abstract and final classes, a
+generator, closures, `match`, a heredoc and nested arrays):
+- The output is identical in every mode, including a load from the `.bin` by a new process.
+- A changed source is recompiled, and its `.bin` is rewritten in place at version `;1`.
+- A fresh process with empty shared memory fills it from the `.bin`.
+- P0 and page-file use are identical at `-T 1000` and `-T 3000`.
+- `test_php.sh` passes 19 of 20 (D18) with the cache on, and the pool writes one `.bin`
+  per script.
+
+The cache mirrors each script's full path under a hash directory, so phpBB's files spread
+over its own directory tree rather than one large directory (#52). On the live board the
+directory must be writable by the account that runs the pool. The kit's template follows in
+Phase 5. Alternatives considered:
+- Shared memory only (the state before): 9.2 s for 3,000 requests of r_fc.php against 9.3 s
+  with the file cache, but every restart recompiles.
+- `opcache.file_cache_only=1`: no shared segment (20,720 pagelets used against 285,072), but
+  every request reads and checks its `.bin` from disk. That took 42.2 s for the same 3,000
+  requests, slower than no opcache at all (30.6 s).
