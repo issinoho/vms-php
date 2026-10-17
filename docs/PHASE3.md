@@ -1,0 +1,189 @@
+# Phase 3: CGI/FastCGI with lighttpd
+
+**Status:** done (2026-10-17); waiting for the user's exit review. Phase 4 has not started.
+Open items and the decisions still to make are at the end.
+
+The x86-64 node, 2026-10-16 to 2026-10-17. PHP 8.5.11 built with VSI clang (LP64), patches
+0001–0020 plus `overlay/vmsport`, run as vms-lighttpd's FastCGI test pool. The live board was
+not touched: its logs were read, and nothing else.
+
+## Setup
+
+- **The PHP tree:** `tools/stage.sh x86` copies the built `PHP.EXE` and `PHP_CGI.EXE` into
+  `<workdir>.VMSPHP.BIN]`, with a minimal CLI `PHP.INI` in `[ETC]` and `[TMP]`,
+  `[TMP.OPCACHE]`. It defines two GROUP logicals:
+  - `VMSPHP$ROOT`, concealed and rooted, because the pool's detached LOGINOUT workers inherit
+    no process or job logicals (D15);
+  - `USE_ZEND_ALLOC` = "1". The node has a SYSTEM logical `USE_ZEND_ALLOC` = "0" from an
+    earlier install, and the group table is searched first (D16).
+- **The test server and pool:** vms-lighttpd's `serve.sh` runs them, through `tools/p3.sh`:
+  - the test server on port 18080, batch job LTTEST;
+  - the pool: four workers `LTPHP_19100`–`19103`, `PHP_CGI.EXE -b` with
+    `PHP_FCGI_CHILDREN=0`.
+- **The pool's `PHP.INI`:** P3SETUP's, minus the two lines that load the 8.1 kit's opcache,
+  because ours is built in (D17), plus `opcache.file_cache` (D19).
+- **Dependencies:** the clang trees of zlib, PCRE2 and libxml2 had gone from the node and were
+  rebuilt on 2026-10-16 in `USER$ROOT:[<user>.VMS_GREP]`. `nodes.conf` column 8 now points
+  there.
+  - vms-zlib's staging predated its clang variant and was prepared again.
+  - vms-libxml2 was cloned back from GitHub.
+  - PCRE2's tree was current.
+  - Their own test suites were not re-run.
+
+## Results
+
+| Target (plan) | Result |
+|---|---|
+| `test_php.sh`, including the backend kill and the proxy check | 19 of 20 pass. The failure is the expected `missing: pdo_mysql,gd` (D18) |
+| opcache on | on, in every run below |
+| `opcache.file_cache` tried | works; used beside shared memory (D19) |
+| 60-minute soak, no ACCVIO | no ACCVIO in either soak |
+| flat quotas | flat after patch 0020; the first soak found a leak (below) |
+
+### test_php.sh
+
+The checks:
+- the cgi-fcgi SAPI, the pool's `PHP.INI`, opcache;
+- `SCRIPT_NAME`, `PATH_INFO`, `QUERY_STRING`, the request method and port;
+- HTTPS over h2, `X-Forwarded-For`/`-Proto` behind a proxy;
+- a form POST, a 3 MB multipart upload (MD5 checked), a 3 MB raw body;
+- a session counter, 1 MB and 256 KB (h2) responses;
+- mysqli reaching MariaDB;
+- requests spread over all four workers;
+- a killed backend with every request still 200;
+- `poolstart` restarting only the missing worker.
+
+All pass except the extension list. The final run, with the file cache on, was on
+2026-10-17.
+
+### The soaks
+
+Both soaks were `SOAK_PHP=1 soak.sh x86 60 8`: eight clients for 60 minutes, a mix of static
+files and the PHP test scripts.
+
+| | First (2026-10-16) | Second (2026-10-17, patch 0020) |
+|---|---|---|
+| Requests | 121,988 | 88,714 |
+| Mean / max time | 0.198 s / 30.0 s | 0.291 s / 30.0 s |
+| ACCVIO | none | none |
+| Curl timeouts (000) / HTTP 500 | 30 / 0 | 41 / 7 |
+| Worker exits | 7 | 9 |
+| Worker page-file quota | falling ~2 MB per 6 min | flat between image restarts |
+
+- **Every worker exit, in both soaks,** is PHP's hard timeout (`%X0035A3E1`, `_exit(124)`)
+  in `session_start()`. The 500s are the requests in flight on a worker when it exited.
+- **The second soak's throughput** fell from ~9,500 to ~4,000 requests per 5 minutes once the
+  session clean-ups began. The live board was also running on the node, so not all of the
+  fall can be put down to one cause.
+
+## What was found and fixed
+
+| Problem | Fix | PORTING_LOG |
+|---|---|---|
+| Each worker leaked ~434 bytes of page file per PHP request, with opcache on (~45 hours to exhaust a worker's quota at the soak's rate) | patch 0020: `accel_unlock_all()` unlocks bytes 0, 1 and 2 one at a time on VMS | 53 |
+| Session clean-up timeouts in a large session directory | none: ODS-5 lookup cost, not a PHP bug (below) | 52 |
+| The build and the probe links failed once the dependencies moved under `USER$ROOT` | `BUILD.COM` (and `r_mdbg_link.com`) resolve the dependency directory to its physical device first | 54 |
+
+### The leak (#53)
+
+How the leak was traced:
+
+1. **Not PHP's memory.** It was present with or without FastCGI and with Zend MM on or off,
+   and absent with `opcache.enable=0`. An allocation tracker linked in front of PHP_CGI
+   (`probes/r_mdbg.c`) showed every `malloc` and `mmap` freed, with the same peak at 1,000 and
+   3,000 requests.
+2. **The 32-bit region grows.** The process's P0 end grew by 434 bytes per request, while P1
+   and P2 did not change. So the memory was the C RTL's own 32-bit allocation.
+3. **Two C RTL calls.** A counter on every DECC$SHR routine PHP calls (`probes/r_trace.c`,
+   stubs generated by `r_trace_gen.py`) showed that opcache adds only two `fcntl()` calls and
+   one `gettimeofday()` per request.
+4. **The lock pair.** opcache takes a read lock on byte 1 at request start and releases it
+   with a whole-file unlock. On VMS an unlock wider than the lock it releases costs ~440
+   bytes of P0 every time. Unlocks of exactly the bytes held cost nothing
+   (`probes/r_fcntl_leak3.c`).
+
+After patch 0020:
+- `-T 1000` and `-T 3000` end with the same P0 and page-file use;
+- the pool's workers use 0 pagelets per 2,000 requests of each test script, in two rounds;
+- the second soak is flat.
+
+The tracking work turned up two VMS facts for later probes (#54):
+- `lib$find_image_symbol` returns a longword, so a procedure value must be sign-extended;
+- a prioritised constructor (`.init_array.101`) is not run, though plain constructors are.
+
+### Session clean-up (#52)
+
+The soak sends no session cookie, so every `session.php` request creates a session file. Once
+files pass `gc_maxlifetime` (24 minutes), PHP's 1-in-1000 clean-up `stat()`s every file in the
+directory. On ODS-5 that is slow: in a 10,000-file directory a `stat()` takes 52 ms, a create
+108 ms, and an unlink up to 140 ms (`probes/r_sess_gc.php`). The clean-up passes the 60-second
+limit, and the worker is killed with its queued requests. In the second soak this began with
+about 4,000 files.
+
+phpBB keeps its sessions in the database, so this is not expected to affect the board. But
+phpBB's `cache/` and `store/` are directories of the same kind; see the decisions below.
+
+## opcache.file_cache (D19)
+
+`probes/r_fc.php` exercises an enum, an interface, abstract and final classes, a generator,
+closures, `match`, a heredoc and nested arrays. With it:
+
+- its output is identical in every mode, including a load from the `.bin` by a new process;
+- a changed source is recompiled, and its `.bin` is rewritten in place at version `;1`;
+- a fresh process with empty shared memory fills it from the `.bin`;
+- P0 and page-file use are flat at `-T 1000`/`-T 3000`, in both modes.
+
+| Mode | 3,000 requests of r_fc.php |
+|---|---|
+| opcache off | 30.6 s |
+| shared memory | 9.2 s |
+| shared memory + file cache (chosen) | 9.3 s |
+| file cache only (rejected) | 42.2 s |
+
+The workers are separate processes, not forks, so each has its own 64 MB opcache segment.
+Each starts empty, and empties again after every image restart. The file cache lets a restarted
+worker load compiled scripts instead of recompiling phpBB. File-only mode reads every `.bin`
+from disk on each request, which on VMS costs more than compiling.
+
+## Tooling added
+
+| Tool | Use |
+|---|---|
+| `tools/stage.sh`, `tools/vms_stage.com` | the staged `VMSPHP$ROOT` tree and its GROUP logicals |
+| `tools/p3.sh` | `setup`, `fcache`, `test` and the pool/server operations, through vms-lighttpd's `serve.sh` |
+| `probes/r_mdbg.c`, `r_mdbg_link.com` | allocation tracker linked in front of PHP_CGI's objects; also reports P0/P1/P2 ends and PAGFILCNT |
+| `probes/r_trace.c`, `r_trace_gen.py`, `r_trace_funcs.txt` | call counts for every C RTL routine PHP_CGI calls |
+| `probes/r_leak_cgi.com`, `r_leak_cgi.php` | page-file use of `PHP_CGI.EXE -T n` sampled from outside |
+| `probes/r_cc.com` | compile a probe with PHP's clang flags; `.s` files assembled without them |
+
+## For Phase 4
+
+- **The test pool runs with our account's privileges,** SYSPRV and READALL among them. phpBB's
+  file permissions will not be tested the way the live board's unprivileged LIGHTTPD account
+  meets them.
+- **Large directories:** watch `cache/`, `store/` and the opcache file cache under phpBB's
+  load (#52).
+- **The file cache's directory** must be writable by the account that runs the pool.
+- **The GROUP logicals** `VMSPHP$ROOT` and `USE_ZEND_ALLOC` are visible to the whole UIC
+  group, including the live board's account, if it shares the group.
+
+## Open items
+
+- **Decisions for the user:**
+  1. **Worker privileges:** run the test pool unprivileged, as the live board does?
+  2. **Large directories:** a strategy for phpBB's `cache/` and `store/`: subdirectories,
+     regular clean-up, or a measured limit to watch.
+  3. **USE_ZEND_ALLOC:** the permanent way to override the node's SYSTEM `USE_ZEND_ALLOC` = "0"
+     for the board and the kit (the kit's startup procedure, the pool procedure, or removing
+     the stale logical).
+  4. **The plan's wording:** "19 checks" should read "19 of test_php.sh's 20 checks, plus the
+     expected extension-list failure" (D18).
+  5. **The test server and pool:** stop them now, or keep them for Phase 4.
+- **Housekeeping on the node** (outside our work directories, left for the user):
+  - two opcache lock files in the login directory, `ZENDSEM_042F25.` (9 October) and
+    `ZENDSEM_A0F118.` (a probe, 17 October);
+  - the first soak's sessions, in `[.T3POOL.SESSIONS_SOAK1]` (10,474 files);
+  - the sessions from before the second soak, in `[.T3POOL.SESSIONS_PRE2]` (4,380 files).
+- **vms-lighttpd's `cache/serve-x86.entry`** disappeared on 2026-10-16 while LTTEST kept
+  running. It was recreated with `416`, LTTEST's actual batch entry.
+- **Dependencies:** the rebuilt zlib and libxml2 have not had their own tests run.
