@@ -3,7 +3,8 @@ $! runs it from (D23). Run by the system manager (needs SYSPRV to create the
 $! directories and set their owners); it does not change logical names, it prints
 $! the DEFINE/SYSTEM for VMSPHP$ROOT.
 $!
-$! P1: the staged tree (tools/stage.sh), e.g. DISK$X:[USER.VMS_PHP.VMSPHP]
+$! P1: the staged tree (tools/stage.sh), e.g. DISK$X:[USER.VMS_PHP.VMSPHP];
+$!     default: [.VMSPHP] in this procedure's directory
 $! P2: the install tree, default DKA0:[VMSPHP]
 $! P3: the pool's account, owner of [TMP.OPCACHE] (default LIGHTTPD)
 $! P4: another identifier given write access to [TMP.OPCACHE] (e.g. the
@@ -16,7 +17,10 @@ $!   [TMP]                           owner SYSTEM, W:RE
 $!   [TMP.OPCACHE]                   owner P3, plus an ACL for P4 (D19)
 $ set noon
 $ say = "write sys$output"
-$ src = p1 - "]"
+$ src = p1
+$ if src .eqs. "" then src = f$parse(f$environment("PROCEDURE"),,,"DEVICE") + -
+    (f$parse(f$environment("PROCEDURE"),,,"DIRECTORY") - "]") + ".VMSPHP]"
+$ src = src - "]"
 $ dst = p2
 $ if dst .eqs. "" then dst = "DKA0:[VMSPHP]"
 $ dst = dst - "]"
