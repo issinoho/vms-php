@@ -2,8 +2,8 @@
 
 **Status:** the test board's checks are done (2026-10-17), and the live board was switched to
 our PHP on 2026-10-17 at 17:33. After four fixes it works: browsing, logins, the ACP and the
-registration CAPTCHA (2026-10-18). The follow-ups are done (below). Waiting for the user's
-review. Open items are at the end.
+registration CAPTCHA (2026-10-18). The follow-ups are done (below). Signed off by the user on
+2026-10-18. Phase 5 is next. Open items are at the end.
 
 The x86-64 node, 2026-10-17. PHP 8.5.11 built with VSI clang (LP64), patches 0001–0021 plus
 `overlay/vmsport`. It runs as vms-lighttpd's FastCGI test pool (`LTPHP_19100`–`19103`, the
@@ -139,6 +139,19 @@ and restarts it. Rollback is setting it back. These need to be settled first:
 - **The node's startup procedure** defines `VMSPHP$ROOT` and `USE_ZEND_ALLOC "1"` (D22).
 - **Cleared:** the old test session directories (about 15,000 files), SMTP queue entry 514,
   and vms-steward's orphaned ssh sessions.
+
+## Exit review (2026-10-18)
+
+- **Patches 0020–0023** were reviewed. Each is guarded by `#ifdef __VMS`, carries its VMS
+  reason and PORTING_LOG entry, and is small enough to send upstream. Two behaviours worth
+  knowing:
+  - 0022 sends `localhost` over TCP even when a socket is named explicitly. That is right
+    here, since no Unix-domain socket works.
+  - 0021 refuses host names longer than `NS_MAXDNAME` with `NO_RECOVERY`.
+- **PHP's tests for this phase's new features,** run on the node with the latest build:
+  - the `password` set: 18 of 18 pass, including the six Argon2 tests, which the Linux
+    reference skips because it has no Argon2;
+  - the `hrtime` set: 2 of 2.
 
 ## Open items
 

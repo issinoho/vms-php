@@ -115,8 +115,8 @@ Each item gets a Phase 0 probe first:
 | 1 dependencies and the build | done | docs/PHASE1.md |
 | 2 language and extensions | done; signed off by the user (2026-10-15) | docs/PHASE2.md |
 | 3 CGI/FastCGI with lighttpd | done; signed off by the user (2026-10-17) | docs/PHASE3.md |
-| 4 phpBB acceptance | test-board checks done; the live board runs our PHP since 2026-10-17 17:33 (fixes #62-#65); waiting for the user's review | docs/PHASE4.md |
-| 5 kit and release | not started | |
+| 4 phpBB acceptance | done; the live board runs our PHP since 2026-10-17 17:33; signed off by the user (2026-10-18) | docs/PHASE4.md |
+| 5 kit and release | next; first, can VSI's Apache use this PHP (FastCGI, being tested) | |
 
 For a new session:
 - **Read first:** docs/PHASE4.md (results, the switch-over prerequisites and open items),
