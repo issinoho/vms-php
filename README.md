@@ -29,6 +29,101 @@ The installation defines `VMSPHP$ROOT` and `USE_ZEND_ALLOC "1"`. Add
 running a FastCGI pool for lighttpd or Apache (`[ETC]PHP-POOL.INI-DIST`), the extensions, and
 the differences from PHP on Unix.
 
+## Running PHP behind a web server
+
+There is no fork on OpenVMS, so the web server doesn't start PHP itself. A **pool** of
+`PHP_CGI.EXE -b` processes runs beside it, each a FastCGI server on its own port, serving one
+request at a time (`PHP_FCGI_CHILDREN=0`). The web server spreads `.php` requests over them.
+The same pool setup serves both servers below:
+
+- **Run the workers** as detached processes under the account that owns the application's
+  writable files, with no privileges beyond `TMPMBX` and `NETMBX`. lighttpd's `PHP_POOL.COM`
+  does this (`START`, `STOP`, `STATUS`), with any web server:
+
+  ```
+  $ @VMSLIGHTTPD$ROOT:[COM]PHP_POOL START 4 19000 <pool directory> VMSPHP$ROOT
+  ```
+
+- **Give the pool its own `PHP.INI`,** from `VMSPHP$ROOT:[ETC]PHP-POOL.INI-DIST`. It is
+  passed with `-c` and refers to the pool directory as `/vmsphp_pool/...` (define the rooted
+  logical `VMSPHP_POOL`, or edit the paths).
+- **Own the writable directories.** The pool's `[.LOGS]`, `[.SESSIONS]`, `[.TMP]` and
+  `[.OPCACHE]` must be owned by the pool's account. PHP checks them with `access()`, which
+  ignores ACLs, and a worker that cannot use its opcache file cache exits at startup.
+
+### lighttpd
+
+[lighttpd for OpenVMS](https://github.com/issinoho/vms-lighttpd) vms3 or later knows this PHP.
+`VMSLIGHTTPD$CONFIGURE` offers `VMSPHP$ROOT` as the PHP root. It writes the pool's `PHP.INI`
+from its `PHP-VMSPHP.INI` template, creates `[PHP.OPCACHE]` and the other pool directories
+owned by the service account, and starts the pool with the server:
+
+```
+$ PRODUCT INSTALL LIGHTTPD /SOURCE=dev:[dir]
+$ @VMSLIGHTTPD$ROOT:[COM]VMSLIGHTTPD$CONFIGURE        ! PHP root: VMSPHP$ROOT; PHP pool: YES
+$ @VMSLIGHTTPD$ROOT:[COM]VMSLIGHTTPD$CONTROL START
+```
+
+By hand, `LIGHTTPD.CONF` lists one backend per worker:
+
+```
+fastcgi.server = ( ".php" => (
+    ( "host" => "127.0.0.1", "port" => 19000, "check-local" => "enable", "broken-scriptfilename" => "enable" ),
+    ( "host" => "127.0.0.1", "port" => 19001, "check-local" => "enable", "broken-scriptfilename" => "enable" )
+  ) )
+```
+
+To move an existing lighttpd pool from VSI's PHP 8.1:
+1. In its `PHP.INI`, remove the `zend_extension = php_opcache` and `extension_dir` lines (opcache
+   is built in), and add `opcache.file_cache` and
+   `openssl.capath = "VMSPHP$ROOT:[ETC.CERTS]"`.
+2. Create the file cache's directory, owned by the service account.
+3. Set `vmslighttpd_php_root == "VMSPHP$ROOT"` in `SYS$MANAGER:VMSLIGHTTPD$CONFIG.COM`, then
+   restart the service.
+
+### Apache (VSI APACHEWS 2.4)
+
+VSI's Apache runs its own PHP 8.1 as `mod_php`. This PHP has no Apache module, so Apache passes
+`.php` to the pool with `mod_proxy_fcgi` and `mod_proxy_balancer`, which VSI ships. In
+`APACHE$ROOT:[CONF]HTTPD.CONF`:
+
+```
+# LoadModule php_module modules/MOD_PHP_APACHE-2_0.EXE   <- comment out VSI's PHP,
+# AddType application/x-httpd-php .php .phtml             <- and its AddType lines
+
+LoadModule proxy_module               modules/mod_proxy.exe
+LoadModule proxy_fcgi_module          modules/mod_proxy_fcgi.exe
+LoadModule proxy_balancer_module      modules/mod_proxy_balancer.exe
+LoadModule slotmem_shm_module         modules/mod_slotmem_shm.exe
+LoadModule lbmethod_byrequests_module modules/mod_lbmethod_byrequests.exe
+
+<Proxy "balancer://php">
+    BalancerMember "fcgi://127.0.0.1:19000"
+    BalancerMember "fcgi://127.0.0.1:19001"
+</Proxy>
+<FilesMatch "\.php$">
+    SetHandler "proxy:balancer://php"
+</FilesMatch>
+DirectoryIndex index.php index.html
+```
+
+- **Keep VSI's `User APACHE$WWW` / `Group #-1` lines.** Without them Apache fails with
+  `error creating persona for #-1`.
+- **Run the pool as `APACHE$WWW`,** or give both accounts read access to the documents through
+  UIC protection.
+- **Not yet verified end to end:** on the test node, VSI's Apache cannot create a listening
+  socket even with its own configuration. `docs/APACHE.md` has the full setup, the pool
+  procedure and troubleshooting.
+
+### Applications
+
+- **Database host:** use `127.0.0.1` (or `localhost`, which this build also connects over TCP).
+- **phpBB's CAPTCHA:** choose "Simple image"; the GD CAPTCHA plugins need gd, which is not
+  built.
+- **Passwords** hashed with argon2id by VSI's PHP 8.1 keep working.
+- **`USE_ZEND_ALLOC`:** VSI's PHP 8.1 crashes with `"1"`, which this kit sets, so do not run
+  both on one system.
+
 ## Notes for OpenVMS
 
 - **No fork.** `PHP_CGI.EXE` runs as a FastCGI server (`-b`), one request at a time per
