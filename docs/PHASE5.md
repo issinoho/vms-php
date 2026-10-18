@@ -1,0 +1,61 @@
+# Phase 5: kit and release
+
+**Status:** done, apart from the website entry (2026-10-18). Open items are at the end.
+
+## The kit (D25)
+
+**PCSI product `VMSPHP` V8.5-11E1**, `ISSINOHO-X86VMS-VMSPHP-V0805-11E1-1.PCSI` (43.9 MB).
+`tools/kit.sh` builds it (CLEAN by default, `NOCLEAN=1` when the tree is already clean-built),
+and `vmsport/kit/MAKE_KIT.COM` packages it on the node.
+
+| In the kit | |
+|---|---|
+| `[VMSPHP.BIN]` | `PHP.EXE`, `PHP_CGI.EXE` |
+| `[VMSPHP.ETC]` | `PHP.INI-DIST` (CLI), `PHP-POOL.INI-DIST` (FastCGI pool, the settings phpBB runs on, under a `VMSPHP_POOL` rooted logical), `CACERT.PEM`, `[.CERTS]` (121 hashed certificates, `openssl.capath`) |
+| `[VMSPHP.COM]` | `VMSPHP$SETUP.COM`: the `php` and `php_cgi` symbols |
+| `[VMSPHP.DOC]` | `README.VMS`, PHP's `LICENSE`, `ARGON2.LICENSE`, `APACHE.MD`, `NEWS` |
+| `SYS$STARTUP` | `VMSPHP$STARTUP.COM`: `VMSPHP$ROOT` (executive mode) and `USE_ZEND_ALLOC "1"`; with `INSTALL`, it also writes `[ETC]PHP.INI` from `PHP.INI-DIST` if there is none |
+
+## The install check (on the live node)
+
+1. **The board's own file cache:** the live pool was moved first to its own
+   `[VMSLIGHTTPD_DATA.PHP.OPCACHE]`, owned by LIGHTTPD, so it no longer depends on where PHP is
+   installed.
+2. **`PRODUCT INSTALL VMSPHP`** installed the kit in `SYS$COMMON:[VMSPHP]`. The node's own
+   supervisor-mode `DEFINE/SYSTEM VMSPHP$ROOT` hid the kit's executive-mode definition (#67).
+   With that deassigned, and `VMSPHP$STARTUP` in the startup procedure instead, the board ran
+   on the kit:
+   - the pages, login and the registration CAPTCHA;
+   - `php -v` through `VMSPHP$SETUP`;
+   - verified HTTPS through the kit's `[ETC.CERTS]`: badssl.com accepted, self-signed and
+     wrong-host certificates rejected.
+
+## Releases
+
+- **vms-php:** [v8.5.11-vms1](https://github.com/issinoho/vms-php/releases/tag/v8.5.11-vms1),
+  the kit and `SHA256SUMS`. The repository's `README.md` is written.
+- **vms-lighttpd:** [v1.4.85-vms3](https://github.com/issinoho/vms-lighttpd/releases/tag/v1.4.85-vms3),
+  with the x86-64 and IA64 kits (vms-lighttpd D13):
+  - a pool template for this PHP, `[CONF]PHP-VMSPHP.INI`;
+  - `VMSLIGHTTPD$CONFIGURE` picks it when it finds `VMSPHP$ROOT`'s kit, creates
+    `[PHP.OPCACHE]`, and offers `VMSPHP$ROOT` as the default PHP root;
+  - `PHP_POOL.COM` creates `[.OPCACHE]`.
+
+  `test_php.sh` passes 19 of 20 with that template on x86 (the expected gd/pdo_mysql check).
+
+## Also in this phase
+
+- **`docs/APACHE.md`:** PHP behind VSI's Apache over `mod_proxy_fcgi`. It is a draft:
+  Apache's modules load, but on this node Apache cannot create a listening socket even with
+  VSI's own configuration, which is a question for VSI.
+
+## Open items
+
+- **The website entry** on openvms.issinoho.com: its source location is not known here.
+- **`DKA0:[VMSPHP]`**, the hand-installed tree from Phase 4, is no longer used and can be
+  removed by the user.
+- **The live board** still runs lighttpd vms2 with a hand-made pool `PHP.INI` equivalent to
+  vms3's template. Upgrading it to vms3 (`PRODUCT INSTALL LIGHTTPD`) keeps its configuration.
+- **VSI Apache:** listener sockets on the node (`docs/APACHE.md`).
+- **MariaDB's stalls** are being handled in another session
+  (`vms-mariadb/docs/INCIDENT_2026-10-17.md`).
