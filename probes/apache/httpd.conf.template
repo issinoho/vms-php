@@ -1,0 +1,37 @@
+# httpd.conf.template - VSI Apache 2.4 (APACHEWS V2.4-62) in front of our PHP over
+# FastCGI (mod_proxy_fcgi), for probes/r_apache_try.com. @TOP@ is the test
+# directory in UNIX form (r_apache_try.com fills it in), @PORT@ Apache's port,
+# @FCGI@ the PHP pool's first worker (host:port).
+ServerRoot "/apache$root"
+Listen 0.0.0.0:@PORT@
+ServerName localhost
+PidFile "@TOP@/logs/httpd.pid"
+
+LoadModule unixd_module         modules/mod_unixd.exe
+LoadModule authz_core_module    modules/mod_authz_core.exe
+LoadModule mime_module          modules/mod_mime.exe
+LoadModule dir_module           modules/mod_dir.exe
+LoadModule log_config_module    modules/mod_log_config.exe
+LoadModule alias_module         modules/mod_alias.exe
+LoadModule setenvif_module      modules/mod_setenvif.exe
+LoadModule proxy_module         modules/mod_proxy.exe
+LoadModule proxy_fcgi_module    modules/mod_proxy_fcgi.exe
+
+ErrorLog "@TOP@/logs/error_log"
+LogLevel warn proxy_fcgi:info
+LogFormat "%h %l %u %t \"%r\" %>s %b %D" timed
+CustomLog "@TOP@/logs/access_log" timed
+TypesConfig conf/mime.types
+
+DocumentRoot "@TOP@/htdocs"
+<Directory "@TOP@/htdocs">
+    Require all granted
+    AllowOverride None
+</Directory>
+DirectoryIndex index.php index.html
+
+# PHP: every .php file to the FastCGI pool. mod_proxy_fcgi passes the script's
+# path as SCRIPT_FILENAME and the rest of the URL as PATH_INFO.
+<FilesMatch "\.php$">
+    SetHandler "proxy:fcgi://@FCGI@"
+</FilesMatch>
