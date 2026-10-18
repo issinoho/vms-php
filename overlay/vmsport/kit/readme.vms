@@ -28,6 +28,14 @@ at boot, add to SYS$MANAGER:SYSTARTUP_VMS.COM, after TCP/IP and SSL3:
 
   $ @SYS$STARTUP:VMSPHP$STARTUP.COM
 
+Remove any earlier definition of VMSPHP$ROOT first, and its DEFINE from the
+startup procedures. VMSPHP$STARTUP defines it in executive mode, and an
+ordinary DEFINE/SYSTEM (supervisor mode) is found before it, so PHP would
+still run from the old tree:
+
+  $ SHOW LOGICAL/FULL/ACCESS_MODE=SUPERVISOR VMSPHP$ROOT
+  $ DEASSIGN/SYSTEM VMSPHP$ROOT
+
 For the php and php_cgi symbols (LOGIN.COM or SYLOGIN.COM):
 
   $ @VMSPHP$ROOT:[COM]VMSPHP$SETUP

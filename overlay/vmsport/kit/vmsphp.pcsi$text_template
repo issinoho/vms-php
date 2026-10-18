@@ -10,6 +10,9 @@
 1 POST_INSTALL
 =prompt Post-installation tasks for PHP for OpenVMS (vms-php)
     VMSPHP$ROOT and USE_ZEND_ALLOC "1" are defined now (system logicals).
+    VMSPHP$ROOT is an executive-mode name: an earlier DEFINE/SYSTEM of it
+    (supervisor mode) hides it. Remove that one (DEASSIGN/SYSTEM VMSPHP$ROOT)
+    and its DEFINE in the startup procedures.
     At boot, add to SYS$MANAGER:SYSTARTUP_VMS.COM (after TCP/IP and SSL3):
     $ @SYS$STARTUP:VMSPHP$STARTUP.COM
     DCL symbols php and php_cgi, from LOGIN.COM or SYLOGIN.COM:
