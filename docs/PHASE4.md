@@ -2,7 +2,8 @@
 
 **Status:** the test board's checks are done (2026-10-17), and the live board was switched to
 our PHP on 2026-10-17 at 17:33. After four fixes it works: browsing, logins, the ACP and the
-registration CAPTCHA (2026-10-18). Waiting for the user's review. Open items are at the end.
+registration CAPTCHA (2026-10-18). The follow-ups are done (below). Waiting for the user's
+review. Open items are at the end.
 
 The x86-64 node, 2026-10-17. PHP 8.5.11 built with VSI clang (LP64), patches 0001–0021 plus
 `overlay/vmsport`. It runs as vms-lighttpd's FastCGI test pool (`LTPHP_19100`–`19103`, the
@@ -127,11 +128,23 @@ and restarts it. Rollback is setting it back. These need to be settled first:
    live 8.1 pool moves to Zend's memory manager as its workers restart. Neither definition
    is in the node's startup yet.
 
+## Done after the switch-over (2026-10-18)
+
+- **Outgoing HTTPS from PHP** (#57) works, through a hashed copy of the pinned CA bundle,
+  `VMSPHP$ROOT:[ETC.CERTS]`, set as `openssl.capath`. `openssl.cafile` took 7 s per handshake.
+  The live board's ini uses it.
+- **`hrtime()`** works (patch 0023, #58).
+- **`VMS_INSTALL_TREE.COM`** sets world access correctly (#66), installs `[ETC.CERTS]`, and
+  needs no parameters.
+- **The node's startup procedure** defines `VMSPHP$ROOT` and `USE_ZEND_ALLOC "1"` (D22).
+- **Cleared:** the old test session directories (about 15,000 files), SMTP queue entry 514,
+  and vms-steward's orphaned ssh sessions.
+
 ## Open items
 
-- **Outgoing HTTPS from PHP** has no CA certificates (#57). phpBB's version check and remote
-  avatars use it. The kit's PHP.INI needs `openssl.cafile` or `openssl.capath`.
-- **`hrtime()`** has no clock source on VMS (#58).
+- **MariaDB's stalls** (#59, #60) are being handled in another session, from
+  `vms-mariadb/docs/INCIDENT_2026-10-17.md`. Until then, a stall shows on the board as PHP
+  hard timeouts in mysqli.
 - **Concurrent session-file reads:** during the Phase 3 tests, eight parallel requests sharing
   one PHP session file logged "Read returned less bytes than requested". The likely cause is
   that data written to an open file is not visible until fsync or close (#39). phpBB keeps
@@ -139,9 +152,13 @@ and restarts it. Rollback is setting it back. These need to be settled first:
 - **The network set's other VMS-only failures:**
   - `ip2long` accepts some short forms that glibc rejects;
   - AF_UNIX sockets cannot be created under `/tmp`, which VMS does not have.
-- **On the node, outside our work directories** (left for the user):
-  - SMTP queue entry 514, the first test email, addressed to the installer's
-    `admin@example.org`;
-  - the lock files and session directories listed in PHASE3.md.
-- **vms-steward:** 48 orphaned ssh clients on the host hold 49 SSH sessions on the node.
-  Their parent process has exited; they are not vms-php's.
+- **For the kit (Phase 5),** from this phase:
+  - the pool's 8.5 `PHP.INI` lines (no `zend_extension`; `opcache.file_cache`; `openssl.capath`);
+  - `127.0.0.1` for `$dbhost` (or patch 0022);
+  - a check that the board's CAPTCHA plugin is not GD;
+  - `USE_ZEND_ALLOC`;
+  - Argon2 built in (D24);
+  - `[ETC.CERTS]`;
+  - a directory PHP writes to must be owned by the pool's account (#61).
+- **Left for the user:** the two opcache lock files in the login directory
+  (`ZENDSEM_*.`).

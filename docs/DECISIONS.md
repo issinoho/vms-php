@@ -352,8 +352,8 @@ Consequences:
   moved to 8.5 (#63). So the old "0" was 8.1's workaround. **A rollback to 8.1 must set
   `DEFINE/SYSTEM USE_ZEND_ALLOC "0"` first,** then restore the pool's `zend_extension` lines
   and `vmslighttpd_php_root`, then restart the service.
-- **Not in the node's startup:** both definitions are lost at a reboot unless the user adds
-  them there. Phase 5's `VMSPHP$STARTUP.COM` will define them.
+- **In the node's startup:** after the reboot of 2026-10-17 the user added both definitions to
+  the node's startup procedure. Phase 5's `VMSPHP$STARTUP.COM` will take them over.
 - **LIGHTTPD's access:** the tree is still in our work directory. The live pool's account
   needs read access to it and write access to `[TMP.OPCACHE]` (D19).
 
