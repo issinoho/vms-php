@@ -6,9 +6,10 @@
     `mod_proxy_balancer` included;
   - it needs the `User` line described below.
 - **Not verified:** a request through Apache to PHP. On the test node Apache cannot create its
-  listening socket at all, even for `httpd -t` (see Troubleshooting), whatever PHP is used. The
-  same PHP pool passes every test behind lighttpd (vms-lighttpd `test_php.sh`, phpBB's
-  `test_phpbb.py`).
+  listening socket at all, not even with VSI's own `HTTPD.CONF` (moved to another port,
+  `mod_php` removed) and `httpd -t`. That is the case whoever runs it: a batch job, an
+  interactive session, or `APACHE$WWW` through `APACHE$STARTUP START`. The same PHP pool passes
+  every test behind lighttpd (vms-lighttpd `test_php.sh`, phpBB's `test_phpbb.py`).
 
 ## How it fits together
 
@@ -182,7 +183,7 @@ Lessons from moving the phpBB board from the 8.1 kit to this PHP (vms-php PHASE4
 |---|---|---|
 | `%SYSTEM-F-PROTINSTALL, protected images must be installed` (`APACHE$APR_SHRP`) | Apache's images are not installed | `@SYS$MANAGER:APACHE$FIS`, or Apache's startup |
 | `[mpm_prefork:error] … error creating persona for #-1` | no `User` directive | `User APACHE$WWW` / `Group #-1` (step 3) |
-| `alloc_listener: failed to get a socket for 0.0.0.0` … `Listen setup failed` (also with `httpd -t`) | Apache cannot create its listening socket. Seen on the test node 2026-10-18 for any port, as any account; Apache had served port 80 there until 2026-10-08 | not yet known: see whether stock `HTTPD.CONF` on another port gives `Syntax OK` with `httpd -t`; if not, it is a question for VSI |
+| `alloc_listener: failed to get a socket for 0.0.0.0` … `Listen setup failed` (also with `httpd -t`) | Apache cannot create its listening socket. Seen on the test node 2026-10-18 for every port tried (8090, 8092, 18090), as every account, and with VSI's own `HTTPD.CONF`; Apache had served port 80 there until 2026-10-08. Note that `httpd -t` loads modules (`LoadModule`) while reading the file and processes `Listen` only after that, so a `LoadModule` error hides this one | not known; a question for VSI. Not caused by PHP or by this configuration |
 | HTTP 500 or 503 with `SQL ERROR [ mysqli ] Operation not permitted [2002]` | `localhost` as database host | `127.0.0.1` (section 5) |
 | PHP worker exits at startup: `opcache.file_cache must be a full path of an accessible directory` | the file cache directory is not the pool account's (an ACL does not count) | make the pool's account its owner |
 | verified HTTPS from PHP takes ~7 s | `openssl.cafile`: SSL3's OpenSSL parses the whole bundle on every handshake | `openssl.capath = "VMSPHP$ROOT:[ETC.CERTS]"`, in VMS syntax: OpenSSL takes a directory without `]` or `:` for a logical name |
