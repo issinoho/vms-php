@@ -417,7 +417,7 @@ Alternatives considered:
 
 ## D25. The PCSI kit: product VMSPHP
 
-**Status:** proposed (2026-10-18, Phase 5).
+**Status:** approved by the user (2026-10-18, Phase 5).
 
 The kit is built like vms-lighttpd's: `tools/kit.sh` builds from clean,
 `vmsport/kit/MAKE_KIT.COM` runs `PRODUCT PACKAGE` on the node, and `tools/prepare.sh` fills in
