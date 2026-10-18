@@ -1,0 +1,24 @@
+=product @PRODUCER@ @BASE@ VMSPHP @PCSIVERSION@ full
+1 'PRODUCER
+=prompt @PRODUCER@
+1 'PRODUCT
+=prompt PHP @VERSION@ for OpenVMS (vms-php)
+1 'NOTICE
+=prompt PHP is distributed under the PHP License 3.01; Argon2 under CC0/Apache 2.0.
+1 RELEASE_NOTES
+=prompt Documentation is in [VMSPHP.DOC]README.VMS under the installation directory.
+1 POST_INSTALL
+=prompt Post-installation tasks for PHP for OpenVMS (vms-php)
+    VMSPHP$ROOT and USE_ZEND_ALLOC "1" are defined now (system logicals).
+    At boot, add to SYS$MANAGER:SYSTARTUP_VMS.COM (after TCP/IP and SSL3):
+    $ @SYS$STARTUP:VMSPHP$STARTUP.COM
+    DCL symbols php and php_cgi, from LOGIN.COM or SYLOGIN.COM:
+    $ @VMSPHP$ROOT:[COM]VMSPHP$SETUP
+    The CLI reads VMSPHP$ROOT:[ETC]PHP.INI. A FastCGI pool for lighttpd or Apache
+    starts from VMSPHP$ROOT:[ETC]PHP-POOL.INI-DIST (README.VMS).
+
+    USE_ZEND_ALLOC "1" replaces a system "0": VSI's PHP 8.1 needs "0" and crashes
+    with "1", so do not run both PHPs on one system.
+
+PRODUCT REMOVE VMSPHP deassigns VMSPHP$ROOT and USE_ZEND_ALLOC; the site's
+[ETC]PHP.INI is kept.

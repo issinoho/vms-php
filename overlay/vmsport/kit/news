@@ -1,0 +1,13 @@
+PHP for OpenVMS (vms-php) - news
+=================================
+
+8.5.11-vms1 (2026-10)
+
+  First kit. PHP 8.5.11 for OpenVMS x86-64, built with VSI clang (LP64):
+  - CLI (PHP.EXE) and CGI/FastCGI (PHP_CGI.EXE -b); opcache built in, with
+    a file cache;
+  - the phpBB extension set (README.VMS section 2), mysqli for MariaDB,
+    openssl through VSI's SSL3, Argon2 password hashing, the DNS functions
+    through TCP/IP Services;
+  - CA certificates for outgoing HTTPS (Mozilla's, via curl.se);
+  - runs the phpBB 3.3 board in production behind lighttpd for OpenVMS.

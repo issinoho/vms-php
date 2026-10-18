@@ -1,0 +1,136 @@
+PHP @VERSION@ for OpenVMS @ARCH@ (vms-php, kit @KITVERSION@)
+=====================================================================
+
+PHP @VERSION@ built natively with VSI's clang (64-bit pointers, LP64), from the
+signed php.net release with small, upstreamable patches (#ifdef __VMS). It runs
+the phpBB 3.3 board in production behind lighttpd for OpenVMS.
+
+  [VMSPHP.BIN]PHP.EXE       the command-line interpreter (CLI)
+  [VMSPHP.BIN]PHP_CGI.EXE   CGI/FastCGI (run as a FastCGI server with -b)
+  [VMSPHP.ETC]              PHP.INI (CLI), the -DIST templates, CA certificates
+  [VMSPHP.COM]              VMSPHP$SETUP.COM (DCL symbols)
+  [VMSPHP.DOC]              this file, licences, APACHE.MD, NEWS
+
+Requirements: OpenVMS x86-64 (built and tested on E9.2-4), VSI SSL3
+(OpenSSL 3.0) and TCP/IP Services.
+
+
+1. After installation
+---------------------
+
+PRODUCT INSTALL VMSPHP runs VMSPHP$STARTUP INSTALL, which defines
+
+  VMSPHP$ROOT      concealed, rooted at the installation (system, exec mode)
+  USE_ZEND_ALLOC   "1": PHP's own memory manager on (see section 6)
+
+and writes [ETC]PHP.INI from PHP.INI-DIST if there is none. To define both
+at boot, add to SYS$MANAGER:SYSTARTUP_VMS.COM, after TCP/IP and SSL3:
+
+  $ @SYS$STARTUP:VMSPHP$STARTUP.COM
+
+For the php and php_cgi symbols (LOGIN.COM or SYLOGIN.COM):
+
+  $ @VMSPHP$ROOT:[COM]VMSPHP$SETUP
+  $ php -v
+  $ php "-r" "echo PHP_VERSION, PHP_EOL;"
+
+DCL upper-cases unquoted arguments: quote options ("-r", "-d", "-c", "-T") and
+anything case-sensitive.
+
+
+2. Extensions
+-------------
+
+Built in (php -m): Core, ctype, date, dom, filter, hash, json, lexbor, libxml,
+mbstring (without mbregex), mysqli, mysqlnd, openssl, pcre (PCRE2 10.49, no
+JIT), random, Reflection, session, SimpleXML, SPL, standard, tokenizer, uri,
+xml, xmlreader, xmlwriter, zlib, and Zend OPcache (no JIT).
+
+Not built: gd (no image CAPTCHAs or thumbnails), intl, iconv, curl, pdo,
+sockets, posix, pcntl, phar, ldap, PostgreSQL, SQLite. dl() is not supported.
+
+password_hash()/password_verify() support bcrypt and Argon2 (argon2i,
+argon2id; the reference implementation is built in).
+
+
+3. Running PHP behind a web server (FastCGI)
+--------------------------------------------
+
+There is no fork on OpenVMS, so PHP_CGI.EXE runs as a FastCGI server, one
+request at a time per process (PHP_FCGI_CHILDREN = 0), and the web server
+spreads requests over several of them on consecutive ports:
+
+  $ define/process PHP_FCGI_CHILDREN "0"
+  $ php_cgi "-c" "/vmsphp_pool/php.ini" "-b" "127.0.0.1:19000"
+
+Run each worker as a detached process (a DCL loop restarts it if it exits),
+under the account that owns the application's writable files, with no
+privileges beyond TMPMBX and NETMBX. lighttpd for OpenVMS's PHP_POOL.COM does
+this (START, STOP, STATUS).
+
+Start the pool's PHP.INI from VMSPHP$ROOT:[ETC]PHP-POOL.INI-DIST. It refers to
+the pool directory through a rooted logical name, VMSPHP_POOL, with [.LOGS],
+[.SESSIONS], [.TMP] and [.OPCACHE] beneath it. Those directories must be OWNED
+by the pool's account (or accessible to it by UIC protection): PHP checks them
+with access(), which ignores ACLs, and a worker whose opcache.file_cache it
+cannot access exits at startup.
+
+lighttpd: fastcgi.server with one ( "host" => "127.0.0.1", "port" => N )
+entry per worker, "check-local" => "enable", "broken-scriptfilename" =>
+"enable".
+
+Apache (VSI APACHEWS 2.4): mod_proxy_fcgi and mod_proxy_balancer; see
+[VMSPHP.DOC]APACHE.MD. (Not yet verified end to end.)
+
+
+4. Applications: phpBB and others
+---------------------------------
+
+- Database host: use 127.0.0.1. ("localhost" also works with this build: it
+  connects over TCP, as there are no usable Unix-domain sockets on VMS.)
+- Passwords hashed with argon2id by an earlier PHP (VSI's 8.1 did) keep
+  working.
+- phpBB's CAPTCHA: choose "Simple image" (ACP > Spambot countermeasures). The
+  GD plugins need gd, which is not built; their images fail with HTTP 500.
+- Outgoing HTTPS (phpBB's version check, remote avatars) verifies peers with
+  the CA certificates in VMSPHP$ROOT:[ETC.CERTS] (Mozilla's root store as
+  extracted by curl.se; openssl.capath, already set in the templates).
+- Files PHP rewrites (fopen "w", file_put_contents) keep one version; rename()
+  replaces the target's versions; unlink() removes every version.
+
+
+5. Differences from PHP on Unix
+-------------------------------
+
+- No fork: proc_open(), pcntl and mail() are not available. Send mail over
+  SMTP (phpBB's own SMTP client works with TCP/IP Services' SMTP server).
+- exec(), system() and shell_exec() run DCL commands; exec()'s result code is
+  the command's $STATUS (odd = 0, even = 1; C programs' exit(n) = n).
+- Data written to an open file is seen by other opens after fflush() or
+  fclose(); PHP's fflush() also syncs regular files.
+- No hard links (link()); file times have no separate atime; chmod(f, 0)
+  gives the default protection.
+- readdir() returns "." and ".." like Unix (the C RTL alone does not).
+- Paths: PHP uses UNIX-style names (/dev/dir/file, /logical/dir/file). File
+  names with '*' cannot be created.
+- AF_UNIX sockets and /tmp do not exist; sys_get_temp_dir() is /sys$scratch.
+- time_t in the C RTL is 32-bit unsigned. PHP's own date functions are 64-bit
+  (dates before 1970 and after 2038 work); file times (touch()) cannot be set
+  before 1970.
+
+
+6. USE_ZEND_ALLOC
+-----------------
+
+The C RTL's getenv() reads logical names, so a SYSTEM logical USE_ZEND_ALLOC
+"0" (some earlier PHP installations define one) turns PHP's memory manager off
+for every PHP process: slower, and memory_get_usage() returns 0.
+VMSPHP$STARTUP defines it as "1". VSI's PHP 8.1 kit needs "0" and crashes in
+its memory manager with "1": do not run both PHPs on one system.
+
+
+7. Building from source
+-----------------------
+
+See https://github.com/issinoho/vms-php (tools/fetch.sh, prepare.sh,
+build.sh; docs/ for the decisions and the porting log).

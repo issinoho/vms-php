@@ -73,4 +73,49 @@ printf 'VERSION=%s\nKIT_VERSION=%s-vms%s\n' "$UPSTREAM_VERSION" "$UPSTREAM_VERSI
 # the dependencies' trees for BUILD.COM: <logical name>=<tree in the deps work directory>
 printf 'ZLIB$ROOT=%s\nPCRE2$ROOT=%s\nLIBXML2$ROOT=%s\n' "$ZLIB_TREE" "$PCRE2_TREE" "$LIBXML2_TREE" \
     > "$stage/vmsport/deps.env"
+# --- PCSI kit inputs (vmsport/kit/MAKE_KIT.COM builds the kit on the node; D25)
+step "PCSI kit inputs"
+kit=$stage/vmsport/kit
+# PHP 8.5.11 with VMS patch level 1 is PCSI V8.5-11E1 (update = third part,
+# ECO = our patch level), as the sibling kits do
+IFS=. read -r major minor update <<< "$UPSTREAM_VERSION"
+pcsiversion="V$major.$minor-${update:-0}E$VMS_PATCH_LEVEL"
+kitversion="$UPSTREAM_VERSION-vms$VMS_PATCH_LEVEL"
+printf 'KIT_PRODUCER=%s\nKIT_PRODUCT=%s\nPCSI_VERSION=%s\nKIT_VERSION=%s\n' \
+    "$KIT_PRODUCER" "$KIT_PRODUCT" "$pcsiversion" "$kitversion" > "$kit/KIT.ENV"
+# the CA bundle, and the same certificates as an OpenSSL hashed directory
+# (<subject hash>.<n>): openssl.capath, not cafile (PORTING_LOG #57)
+ca=$top/cache/$(basename "$CA_BUNDLE_URL")
+[ -f "$ca" ] || die "no $ca (tools/fetch.sh)"
+cp "$ca" "$kit/CACERT.PEM"
+mkdir -p "$kit/CERTS"
+awk -v d="$kit/CERTS" '/-----BEGIN CERTIFICATE-----/{n++; f=sprintf("%s/split%03d.pem", d, n)} f{print > f}
+                      /-----END CERTIFICATE-----/{close(f); f=""}' "$ca"
+for c in "$kit/CERTS"/split*.pem; do
+    h=$(openssl x509 -noout -subject_hash -in "$c"); i=0
+    while [ -e "$kit/CERTS/$h.$i" ]; do i=$((i+1)); done
+    mv "$c" "$kit/CERTS/$h.$i"
+done
+certfiles=$(cd "$kit/CERTS" && ls | sort | sed 's/^/    file [VMSPHP.ETC.CERTS]/; s/$/ ;/')
+subst() {
+    sed -e "s/@PRODUCER@/$KIT_PRODUCER/g" -e "s/@BASE@/X86VMS/g" \
+        -e "s/@PCSIVERSION@/$pcsiversion/g" -e "s/@VERSION@/$UPSTREAM_VERSION/g" \
+        -e "s/@KITVERSION@/$kitversion/g" -e "s/@ARCH@/x86-64/g"
+}
+lc=$(echo "$KIT_PRODUCT" | tr A-Z a-z)
+subst < "$kit/$lc.pcsi\$desc_template" | awk -v files="$certfiles" '$0 == "@CERTFILES@" {print files; next} {print}' \
+    > "$kit/PRODUCT-X86VMS.PCSI\$DESC"
+subst < "$kit/$lc.pcsi\$text_template" > "$kit/PRODUCT-X86VMS.PCSI\$TEXT"
+rm -f "$kit/$lc.pcsi\$desc_template" "$kit/$lc.pcsi\$text_template"
+subst < "$kit/readme.vms" > "$kit/README.VMS"; rm -f "$kit/readme.vms"
+mv "$kit/news" "$kit/NEWS."
+mv "$kit/php-pool.ini-dist" "$kit/PHP-POOL.INI-DIST"
+cp "$top/tools/install/php.ini" "$kit/PHP.INI-DIST"
+cp "$stage/LICENSE" "$kit/LICENSE."
+cp "$stage/vmsport/argon2/LICENSE" "$kit/ARGON2.LICENSE"
+cp "$top/docs/APACHE.md" "$kit/APACHE.MD"
+for f in 'vmsphp$startup.com' 'vmsphp$setup.com' make_kit.com; do
+    u=$(echo "$f" | tr a-z A-Z); mv "$kit/$f" "$kit/$u"
+done
+
 step "staged $stage"

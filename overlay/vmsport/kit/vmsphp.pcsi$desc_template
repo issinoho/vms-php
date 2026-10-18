@@ -1,0 +1,45 @@
+--
+-- PCSI product description for PHP for OpenVMS (vms-php, D25).
+-- Product name VMSPHP: VSI's PHP comes with its Apache kit; this one stands alone.
+-- Template: tools/prepare.sh substitutes @PRODUCER@, @BASE@, @PCSIVERSION@ and
+-- @CERTFILES@ (one file line per certificate in [VMSPHP.ETC.CERTS]).
+--
+product @PRODUCER@ @BASE@ VMSPHP @PCSIVERSION@ full ;
+
+    -- PHP links VSI's OpenSSL 3.0 shared images (SYS$SHARE:SSL3$LIB*_SHR) and the
+    -- TCP/IP Services resolver (SYS$SHARE:TCPIP$IPC_SHR).
+    software VSI @BASE@ SSL3 ;
+    software VSI @BASE@ TCPIP ;
+
+    information RELEASE_NOTES phase after ;
+
+    directory [VMSPHP] ;
+    directory [VMSPHP.BIN] ;
+    directory [VMSPHP.COM] ;
+    directory [VMSPHP.DOC] ;
+    directory [VMSPHP.ETC] ;
+    directory [VMSPHP.ETC.CERTS] ;
+    directory [VMSPHP.TMP] ;
+
+    file [VMSPHP.BIN]PHP.EXE ;
+    file [VMSPHP.BIN]PHP_CGI.EXE ;
+    file [VMSPHP.COM]VMSPHP$SETUP.COM ;
+    file [VMSPHP.ETC]PHP.INI-DIST ;
+    file [VMSPHP.ETC]PHP-POOL.INI-DIST ;
+    file [VMSPHP.ETC]CACERT.PEM ;
+@CERTFILES@
+    file [VMSPHP.DOC]README.VMS ;
+    file [VMSPHP.DOC]LICENSE. ;
+    file [VMSPHP.DOC]ARGON2.LICENSE ;
+    file [VMSPHP.DOC]APACHE.MD ;
+    file [VMSPHP.DOC]NEWS. ;
+    file [SYS$STARTUP]VMSPHP$STARTUP.COM ;
+
+    -- Define VMSPHP$ROOT and USE_ZEND_ALLOC now, and [ETC]PHP.INI if there is none.
+    execute postinstall "@PCSI$DESTINATION:[SYS$STARTUP]VMSPHP$STARTUP.COM INSTALL" interactive ;
+    -- On removal: deassign them.
+    execute install "CONTINUE" remove "@PCSI$DESTINATION:[SYS$STARTUP]VMSPHP$STARTUP.COM REMOVE" ;
+
+    information POST_INSTALL phase after ;
+
+end product ;

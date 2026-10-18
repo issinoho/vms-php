@@ -1,0 +1,79 @@
+; PHP-POOL.INI-DIST - PHP.INI for a FastCGI pool of PHP_CGI.EXE -b workers behind
+; lighttpd or Apache (PHP for OpenVMS). The settings phpBB 3.3 ran on in vms-php's
+; Phase 4.
+;
+; Copy it to the pool's own directory, e.g. as <pool>PHP.INI, and start each
+; worker with:  PHP_CGI.EXE "-c" "<that file, UNIX form>" "-b" "127.0.0.1:<port>"
+;
+; The paths below use a rooted logical name for the pool directory, so the file
+; works unchanged:
+;   $ DEFINE/SYSTEM/TRANSLATION_ATTRIBUTES=CONCEALED VMSPHP_POOL DKA0:[MYPOOL.]
+; with [MYPOOL.LOGS], [MYPOOL.SESSIONS], [MYPOOL.TMP] and [MYPOOL.OPCACHE] owned by
+; the pool's account. Ownership matters: PHP checks these with access(), which
+; ignores ACLs (vms-php PORTING_LOG #61).
+
+[PHP]
+engine = On
+short_open_tag = Off
+expose_php = Off
+max_execution_time = 60
+max_input_time = 60
+memory_limit = 256M
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+display_errors = Off
+display_startup_errors = Off
+log_errors = On
+error_log = /vmsphp_pool/logs/php_errors.log
+post_max_size = 32M
+file_uploads = On
+upload_max_filesize = 16M
+max_file_uploads = 20
+upload_tmp_dir = /vmsphp_pool/tmp
+sys_temp_dir = /vmsphp_pool/tmp
+default_charset = "UTF-8"
+allow_url_fopen = On
+allow_url_include = Off
+; FastCGI behind lighttpd's or Apache's mod_proxy_fcgi
+cgi.fix_pathinfo = 1
+cgi.force_redirect = 0
+; dl() is not supported
+enable_dl = Off
+
+[Date]
+date.timezone = UTC
+
+[Session]
+session.save_handler = files
+session.save_path = "/vmsphp_pool/sessions"
+session.use_strict_mode = 1
+session.use_cookies = 1
+session.use_only_cookies = 1
+session.cookie_httponly = 1
+session.gc_probability = 1
+session.gc_divisor = 1000
+session.gc_maxlifetime = 1440
+
+[opcache]
+; opcache is built in: no zend_extension line
+opcache.enable = 1
+opcache.enable_cli = 0
+opcache.lockfile_path = /vmsphp_pool/tmp
+opcache.memory_consumption = 64
+opcache.interned_strings_buffer = 8
+opcache.max_accelerated_files = 10000
+opcache.validate_timestamps = 1
+opcache.revalidate_freq = 2
+; compiled scripts also on disk: a worker whose image restarts loads them
+; instead of compiling the application again (vms-php D19)
+opcache.file_cache = "/vmsphp_pool/opcache"
+
+[openssl]
+; VSI's SSL3 kit has no CA certificates: the kit's, as a hashed directory.
+; Not openssl.cafile (SSL3's OpenSSL parses the whole file on every handshake,
+; ~7 s). VMS syntax: OpenSSL takes a directory without ']' or ':' for a logical name.
+openssl.capath = "VMSPHP$ROOT:[ETC.CERTS]"
+
+[mysqli]
+; phpBB and most applications: connect to 127.0.0.1 (localhost also works with
+; this build, over TCP: VMS has no usable Unix-domain sockets)
+mysqli.default_host = 127.0.0.1

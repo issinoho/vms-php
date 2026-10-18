@@ -414,3 +414,36 @@ Alternatives considered:
   later.
 - libsodium, which PHP can also use for Argon2. It is a much larger port.
 - Roll back to 8.1 until Argon2 is ready. This needs `USE_ZEND_ALLOC "0"` again (D22, #63).
+
+## D25. The PCSI kit: product VMSPHP
+
+**Status:** proposed (2026-10-18, Phase 5).
+
+The kit is built like vms-lighttpd's: `tools/kit.sh` builds from clean,
+`vmsport/kit/MAKE_KIT.COM` runs `PRODUCT PACKAGE` on the node, and `tools/prepare.sh` fills in
+the templates.
+
+- **Product `VMSPHP`,** producer ISSINOHO, version `V8.5-11E1` (PHP 8.5.11, our patch level as
+  the ECO number, as the sibling kits do). The kit name is `ISSINOHO-X86VMS-VMSPHP-V0805-11E1-1`.
+  VSI's own PHP is part of its Apache kit (8.1.23), and the name keeps the two apart.
+- **Contents,** under `[VMSPHP]` in the installation directory:
+  - `[BIN]`: `PHP.EXE` and `PHP_CGI.EXE`;
+  - `[ETC]`:
+    - `PHP.INI-DIST` (CLI) and `PHP-POOL.INI-DIST` (a FastCGI pool, from the ini phpBB ran
+      on in Phase 4);
+    - `CACERT.PEM`, and the same certificates hashed in `[ETC.CERTS]` (`openssl.capath`);
+  - `[COM]`: `VMSPHP$SETUP.COM`, with the `php` and `php_cgi` symbols;
+  - `[DOC]`: `README.VMS`, PHP's `LICENSE`, Argon2's `ARGON2.LICENSE`, `APACHE.MD` and `NEWS`.
+- **The site's files survive upgrades:** the kit installs only the `-DIST` files.
+  `VMSPHP$STARTUP INSTALL` copies `PHP.INI-DIST` to `PHP.INI` only if there is none.
+- **`SYS$STARTUP:VMSPHP$STARTUP.COM`** defines `VMSPHP$ROOT` (system, executive mode,
+  concealed) and `USE_ZEND_ALLOC "1"` (D22). It runs with `INSTALL` after the installation and
+  with `REMOVE` at removal. Sites add it to their system startup.
+- **Prerequisites:** VSI's SSL3 (its shared images) and TCP/IP Services (`TCPIP$IPC_SHR`, D21).
+- **Not in the kit:** the pool's writable directories (opcache file cache, sessions, uploads,
+  logs). They must belong to the pool's account (#61), so the site creates them, as
+  vms-lighttpd's configure step does.
+
+Alternatives considered:
+- Product name `PHP`: VSI's Apache kit owns that name.
+- Installing a ready `PHP.INI`: an upgrade would overwrite the site's settings.
