@@ -11,6 +11,7 @@ $!     developer's account, for its test pool), optional
 $!
 $!   [BIN] PHP.EXE, PHP_CGI.EXE      owner SYSTEM, W:RE
 $!   [ETC] PHP.INI, CACERT.PEM       owner SYSTEM, W:RE
+$!   [ETC.CERTS] hashed CA directory owner SYSTEM, W:RE
 $!   [TMP]                           owner SYSTEM, W:RE
 $!   [TMP.OPCACHE]                   owner P3, plus an ACL for P4 (D19)
 $ set noon
@@ -48,8 +49,19 @@ $ endif
 $ copy/nolog 'src'.BIN]PHP.EXE, 'src'.BIN]PHP_CGI.EXE 'dst'.BIN]
 $ copy/nolog 'src'.ETC]PHP.INI 'dst'.ETC]
 $ if f$search(src + ".ETC]CACERT.PEM") .nes. "" then copy/nolog 'src'.ETC]CACERT.PEM 'dst'.ETC]
+$! the hashed CA directory for openssl.capath (PORTING_LOG #57)
+$ if f$search(src + ".ETC.CERTS]*.*") .nes. ""
+$ then
+$   create/directory/owner=[SYSTEM]/protection='dprot' 'dst'.ETC.CERTS]
+$   if f$search(dst + ".ETC.CERTS]*.*") .nes. "" then delete/nolog 'dst'.ETC.CERTS]*.*;*
+$   copy/nolog 'src'.ETC.CERTS]*.* 'dst'.ETC.CERTS]
+$   set file/owner=[SYSTEM] 'dst'.ETC.CERTS]*.*;*
+$   set security/protection='prot' 'dst'.ETC.CERTS]*.*;*
+$ endif
 $ set file/owner=[SYSTEM] 'dst'.BIN]*.*;*, 'dst'.ETC]*.*;*
-$ set security/protection='prot' 'dst'.BIN]*.*;*, 'dst'.ETC]*.*;*
+$! one directory per SET SECURITY: it takes no list of files (%DCL-W-NOLIST)
+$ set security/protection='prot' 'dst'.BIN]*.*;*
+$ set security/protection='prot' 'dst'.ETC]*.*;*
 $ purge/nolog 'dst'.BIN], 'dst'.ETC]
 $ directory/security 'dst'...]
 $! the rooted, concealed name needs the physical device and directory

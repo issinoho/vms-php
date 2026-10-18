@@ -3,7 +3,8 @@ $!
 $! P1: the build's image directory, e.g. DISK$X:[USER.VMS_PHP.PHP-8_5_11.OBJ_X86_64]
 $! P2: the install tree's top directory, e.g. DISK$X:[USER.VMS_PHP.VMSPHP]
 $! P3: the PHP.INI for [ETC] (uploaded by tools/stage.sh)
-$! P4: the CA bundle for [ETC]CACERT.PEM, openssl.cafile (PORTING_LOG #57)
+$! P4: the CA bundle for [ETC]CACERT.PEM (PORTING_LOG #57)
+$! P5: the same certificates as a hashed directory, for [ETC.CERTS] (openssl.capath)
 $! Copies PHP.EXE and PHP_CGI.EXE into [BIN] and PHP.INI into [ETC], creates
 $! [TMP] and [TMP.OPCACHE], and checks the SYSTEM logicals the user defined
 $! (D22): VMSPHP$ROOT, concealed and rooted at this tree, and USE_ZEND_ALLOC
@@ -23,6 +24,12 @@ $ copy/nolog 'obj'PHP.EXE 'top'.BIN]PHP.EXE
 $ copy/nolog 'obj'PHP_CGI.EXE 'top'.BIN]PHP_CGI.EXE
 $ copy/nolog 'ini' 'top'.ETC]PHP.INI
 $ if p4 .nes. "" then copy/nolog 'p4' 'top'.ETC]CACERT.PEM
+$ if p5 .nes. ""
+$ then
+$   if f$search(top + ".ETC]CERTS.DIR") .eqs. "" then create/directory 'top'.ETC.CERTS]
+$   if f$search(top + ".ETC.CERTS]*.*") .nes. "" then delete/nolog 'top'.ETC.CERTS]*.*;*
+$   copy/nolog 'p5'*.* 'top'.ETC.CERTS]
+$ endif
 $ purge/nolog 'top'...]*.*
 $! the SYSTEM logicals (D22): warn if missing or pointing elsewhere
 $ dev = f$getdvi(f$parse(top + "]",,,"DEVICE","NO_CONCEAL"), "FULLDEVNAM")

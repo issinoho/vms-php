@@ -7,7 +7,7 @@
 #          [.T3POOL]PHP.INI without the template's zend_extension and
 #          extension_dir lines: they load the PHP 8.1 kit's opcache, and ours
 #          is built in (D17); then poolini: opcache.file_cache in
-#          VMSPHP$ROOT:[TMP.OPCACHE] (D19) and openssl.cafile, the staged CA bundle
+#          VMSPHP$ROOT:[TMP.OPCACHE] (D19) and openssl.capath, the staged hashed CA directory
 #          (PORTING_LOG #57). poolini (or fcache) applies only those lines to an
 #          existing [.T3POOL]PHP.INI
 #   test   test_php.sh; its "phpBB extensions loaded" check fails on gd and
@@ -32,10 +32,10 @@ poolini() {
     "$lt/tools/vms.sh" "$node" dcl "set default $tree" \
         'if f$search("[.T3POOL]OPCACHE.DIR") .eqs. "" then create/directory [.T3POOL.OPCACHE]' >/dev/null
     "$lt/tools/vms.sh" "$node" dcl "set default $tree" \
-        'search/match=nor/output=[.T3POOL]PHP.TMP [.T3POOL]PHP.INI "opcache.file_cache","openssl.cafile"' \
+        'search/match=nor/output=[.T3POOL]PHP.TMP [.T3POOL]PHP.INI "opcache.file_cache","openssl.cafile","openssl.capath"' \
         'open/append f [.T3POOL]PHP.TMP' \
         "write f \"opcache.file_cache = \"\"$ufcache\"\"\"" \
-        'write f "openssl.cafile = ""/vmsphp$root/etc/cacert.pem"""' \
+        'write f "openssl.capath = ""VMSPHP$ROOT:[ETC.CERTS]"""' \
         'close f' \
         'delete/nolog [.T3POOL]PHP.INI;*' \
         'convert/fdl=[.T2]STMLF.FDL [.T3POOL]PHP.TMP [.T3POOL]PHP.INI' \

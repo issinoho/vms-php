@@ -1,0 +1,24 @@
+Subject: Zend: hrtime() from CLOCK_MONOTONIC on OpenVMS
+
+zend_hrtime.h selects clock_gettime(CLOCK_MONOTONIC) only when the headers
+define _POSIX_TIMERS > 0 and _POSIX_MONOTONIC_CLOCK.  The OpenVMS C RTL
+defines neither, though CLOCK_MONOTONIC and clock_gettime() work: 100 ns
+resolution, counting from boot, never backwards in a million reads
+(probe r_monotonic).  With no platform clock, hrtime() returned false
+(vms-php PORTING_LOG #58).  On VMS, CLOCK_MONOTONIC is enough.
+---
+--- a/Zend/zend_hrtime.h
++++ b/Zend/zend_hrtime.h
+@@ -38,7 +38,11 @@
+ #define ZEND_HRTIME_PLATFORM_HPUX    0
+ #define ZEND_HRTIME_PLATFORM_AIX     0
+ 
+-#if defined(_POSIX_TIMERS) && ((_POSIX_TIMERS > 0) || defined(__OpenBSD__)) && defined(_POSIX_MONOTONIC_CLOCK) && defined(CLOCK_MONOTONIC)
++/* OpenVMS: clock_gettime(CLOCK_MONOTONIC) works (100 ns, from boot), but the C
++ * RTL's headers define neither _POSIX_TIMERS nor _POSIX_MONOTONIC_CLOCK, so
++ * hrtime() was false (vms-php PORTING_LOG #58, probe r_monotonic) */
++#if (defined(_POSIX_TIMERS) && ((_POSIX_TIMERS > 0) || defined(__OpenBSD__)) && defined(_POSIX_MONOTONIC_CLOCK) && defined(CLOCK_MONOTONIC)) \
++	|| (defined(__VMS) && defined(CLOCK_MONOTONIC))
+ # undef  ZEND_HRTIME_PLATFORM_POSIX
+ # define ZEND_HRTIME_PLATFORM_POSIX 1
+ #elif defined(_WIN32) || defined(_WIN64)
