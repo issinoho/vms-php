@@ -1,6 +1,6 @@
 # Phase 5: kit and release
 
-**Status:** done, apart from the website entry (2026-10-18). Open items are at the end.
+**Status:** done (2026-10-18). Open items are at the end.
 
 ## The kit (D25)
 
@@ -43,6 +43,16 @@ and `vmsport/kit/MAKE_KIT.COM` packages it on the node.
 
   `test_php.sh` passes 19 of 20 with that template on x86 (the expected gd/pdo_mysql check).
 
+## The website
+
+openvms.issinoho.com is built from vms-grep's `site/`. PHP was added there:
+- to `projects.json`, with the release snapshot `releases.json` regenerated (27 releases);
+- to vms-grep's `README.md` list and table;
+- to the upstream watch (`tools/upstream-watch.json`: anitya 3627, the 8.5 series).
+
+lighttpd's entry moved to vms3, without the preview label. The Pages deploy of vms-grep
+5bf7f8c succeeded.
+
 ## Also in this phase
 
 - **`docs/APACHE.md`:** PHP behind VSI's Apache over `mod_proxy_fcgi`. It is a draft:
@@ -51,7 +61,6 @@ and `vmsport/kit/MAKE_KIT.COM` packages it on the node.
 
 ## Open items
 
-- **The website entry** on openvms.issinoho.com: its source location is not known here.
 - **`DKA0:[VMSPHP]`**, the hand-installed tree from Phase 4, is no longer used and can be
   removed by the user.
 - **The live board** still runs lighttpd vms2 with a hand-made pool `PHP.INI` equivalent to

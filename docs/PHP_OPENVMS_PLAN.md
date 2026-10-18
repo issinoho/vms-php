@@ -116,7 +116,7 @@ Each item gets a Phase 0 probe first:
 | 2 language and extensions | done; signed off by the user (2026-10-15) | docs/PHASE2.md |
 | 3 CGI/FastCGI with lighttpd | done; signed off by the user (2026-10-17) | docs/PHASE3.md |
 | 4 phpBB acceptance | done; the live board runs our PHP since 2026-10-17 17:33; signed off by the user (2026-10-18) | docs/PHASE4.md |
-| 5 kit and release | done (2026-10-18): kit VMSPHP V8.5-11E1, release v8.5.11-vms1, vms-lighttpd v1.4.85-vms3; the website entry is open | docs/PHASE5.md |
+| 5 kit and release | done (2026-10-18): kit VMSPHP V8.5-11E1, release v8.5.11-vms1, vms-lighttpd v1.4.85-vms3, the website entry | docs/PHASE5.md |
 
 For a new session:
 - **Read first:** docs/PHASE5.md (the kit, the releases, open items), PORTING_LOG #60–#67,
