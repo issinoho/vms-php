@@ -218,3 +218,30 @@ Ground rules as in the siblings' CLAUDE.md:
   crashes, and the board switched with the user's approval.
 - **Phase 5:** the install check passes. A failure counts as fixed only when the test
   passes again on the node.
+
+## IA64: assessed 2026-10-18, on hold
+
+The user asked whether PHP could be released for IA64 as well, and put it on hold after this
+assessment.
+
+The IA64 node has VSI C V7.4-001 on OpenVMS V8.4-2L3, VSI SSL3 3.0 and 3.1, no clang, and a
+third-party PHP under `PHP_ROOT`. So IA64 means a second port with VSI C: a **32-bit (ILP32)
+PHP**, the route D2 left open.
+
+- **Carries over:**
+  - the C RTL behaviour patches (files and versions, math, strerror, readdir, fflush, exec
+    status, ctype, opcache's lock leak, localhost over TCP);
+  - the `.phpt` runner, the lighttpd test pool, `test_phpbb.py`, the soaks, the kit tooling;
+  - vms-zlib's and vms-pcre2's VSI C IA64 builds.
+- **Most of the x86 patches for pointers above 2 GB** (environ, putenv, the resolver,
+  gethostbyname_r, fiber stacks) would not apply. ILP32 problems would replace them.
+- **Risks to probe first,** in a Phase 0 of their own:
+  1. whether VSI C 7.4 accepts what PHP 8.5's headers need (C99 and the C11 features 8.4+
+     uses); if not, an older series such as 8.3;
+  2. fibers: Boost.Context has no IA64 code, and PHP's ucontext fallback needs ucontext, which
+     VMS lacks; fibers are core in 8.x;
+  3. 32-bit limits: integers to 2^31, and files and offsets to 2 GB;
+  4. no GCC builtins or computed goto: PHP falls back to a slower VM; vms-libxml2 needs a VSI C
+     IA64 build.
+- **To resume:** Phase 0 probes for IA64, then a decision (D26) between PHP 8.5, an older
+  series, or not at all, for the user's approval.
