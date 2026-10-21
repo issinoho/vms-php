@@ -447,3 +447,21 @@ the templates.
 Alternatives considered:
 - Product name `PHP`: VSI's Apache kit owns that name.
 - Installing a ready `PHP.INI`: an upgrade would overwrite the site's settings.
+
+## D27. The release signature: any of the PHP 8.5 release managers' keys (amends D1)
+
+**Status:** proposed (2026-10-21, the 8.5.12 security update).
+
+PHP 8.5.12 (CVE-2026-109618, CVE-2026-109619) is signed by Daniel Scherzer
+(`D95C03BC702BE9515344AE3374E44BC9067701A5`), not by Volker Dusch, whose key alone D1 pinned:
+the 8.5 release managers take turns. `keys/php-8.5-signing-keys.asc` now holds the three keys
+php.net lists for PHP 8.5 (https://www.php.net/gpg-keys.php), exported from
+`php-keyring.gpg` as the first key was: Pierrick Charron
+(`1198C0117593497A5EC5C199286AF1F9897469DC`), Volker Dusch and Daniel Scherzer.
+`upstream.conf`'s `UPSTREAM_GPG_KEYS` lists their fingerprints, and `fetch.sh` accepts a
+valid signature by any one of them (and still checks the pinned SHA-256 first).
+
+Alternatives considered:
+- Re-pinning the one key that signed each release: every change of release manager breaks
+  `fetch.sh` until the pin is edited again, and the trust set is the same three people.
+- php.net's whole keyring: it trusts every past release manager of every branch.

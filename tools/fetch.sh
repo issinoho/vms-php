@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # fetch.sh - download the PHP release tarball named in upstream.conf into
 # cache/, verify its SHA-256, and verify its GPG signature against
-# keys/php-8.5-signing-key.asc.  Also the pinned CA bundle and Argon2 sources (SHA-256).
+# keys/php-8.5-signing-keys.asc (the 8.5 release managers, D27).  Also the pinned CA bundle and Argon2 sources (SHA-256).
 set -euo pipefail
 
 top=$(cd "$(dirname "$0")/.." && pwd)
@@ -18,16 +18,20 @@ tarball=$cache/$(basename "$UPSTREAM_URL")
 echo "$UPSTREAM_SHA256  $tarball" | sha256sum -c --quiet - ||
     { echo "fetch: SHA-256 mismatch for $tarball" >&2; exit 1; }
 
-# A throwaway keyring holding only the pinned key shipped in the repo.
+# A throwaway keyring holding only the pinned keys shipped in the repo.
 keyring=$cache/php-pinned-keyring.gpg
 rm -f "$keyring"
-gpg --no-default-keyring --keyring "$keyring" --import "$top/keys/php-8.5-signing-key.asc" 2>/dev/null
+gpg --no-default-keyring --keyring "$keyring" --import "$top/keys/php-8.5-signing-keys.asc" 2>/dev/null
 status=$(gpg --no-default-keyring --keyring "$keyring" --status-fd 1 \
              --verify "$tarball.asc" "$tarball" 2>/dev/null || true)
-# VALIDSIG ends with the primary key's fingerprint.
-echo "$status" | grep -q "^\[GNUPG:\] VALIDSIG .* $UPSTREAM_GPG_KEY\$" ||
-    { echo "fetch: no valid signature by $UPSTREAM_GPG_KEY on $tarball" >&2; exit 1; }
-echo "fetch: signature OK ($UPSTREAM_GPG_KEY)"
+# VALIDSIG ends with the primary key's fingerprint; any one of the pinned keys will do.
+signer=
+for key in $UPSTREAM_GPG_KEYS; do
+    echo "$status" | grep -q "^\[GNUPG:\] VALIDSIG .* $key\$" && signer=$key
+done
+[ -n "$signer" ] ||
+    { echo "fetch: no valid signature by a pinned key ($UPSTREAM_GPG_KEYS) on $tarball" >&2; exit 1; }
+echo "fetch: signature OK ($signer)"
 echo "fetch: $tarball"
 
 # the CA bundle for openssl.cafile (PORTING_LOG #57)
