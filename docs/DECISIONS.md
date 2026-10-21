@@ -450,7 +450,7 @@ Alternatives considered:
 
 ## D27. The release signature: any of the PHP 8.5 release managers' keys (amends D1)
 
-**Status:** proposed (2026-10-21, the 8.5.12 security update).
+**Status:** approved by the user (2026-10-21, the 8.5.12 security update).
 
 PHP 8.5.12 (CVE-2026-109618, CVE-2026-109619) is signed by Daniel Scherzer
 (`D95C03BC702BE9515344AE3374E44BC9067701A5`), not by Volker Dusch, whose key alone D1 pinned:
