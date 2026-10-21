@@ -68,3 +68,32 @@ lighttpd's entry moved to vms3, without the preview label. The Pages deploy of v
 - **VSI Apache:** listener sockets on the node (`docs/APACHE.md`).
 - **MariaDB's stalls** are being handled in another session
   (`vms-mariadb/docs/INCIDENT_2026-10-17.md`).
+
+## Update: 8.5.12-vms1 (2026-10-21)
+
+PHP 8.5.12 is a security release: CVE-2026-109618 and CVE-2026-109619 (GHSA-w8hw-w9fx-j79w,
+GHSA-6wmf-4rv5-p3rp, both critical, remote code execution through state left corrupted by an
+out-of-memory or other bailout), fixed in the Zend engine.
+
+- **Pin:** `upstream.conf` re-pinned to 8.5.12. The tarball is signed by another 8.5 release
+  manager, so `fetch.sh` now accepts any of the three (#68, D27).
+- **Patches:** 0001–0023 apply unchanged (0001 and 0014 at an offset). Upstream changed none of
+  their lines. `gen_build.py` took the same 235 `php_config.h` decisions and the same
+  627-object list as for 8.5.11.
+- **Build:** from CLEAN on x86, 639 compiled, 0 failed.
+- **Tests (the sets the fix touches), against a Linux build of 8.5.12:**
+
+  | Set | VMS pass / fail / skip | Linux pass / fail / skip | VMS-only failures |
+  |---|---|---|---|
+  | zend | 5251 / 16 / 30 | 5253 / 14 / 30 | bug80811, new_oom (both known in 8.5.11) |
+  | fibers | 297 / 0 / 0 | 297 / 0 / 0 | none |
+
+  The smoke test's memory exhaustion (`memory_limit=8M`) ends in PHP's fatal error, with no crash.
+- **Kit:** `ISSINOHO-X86VMS-VMSPHP-V0805-12E1-1.PCSI`. `PRODUCT INSTALL VMSPHP` upgraded
+  V8.5-11E1 on the live node at 20:21. The site's `[ETC]PHP.INI` and both logicals were
+  unchanged.
+- **The board:** `VMSLIGHTTPD$CONTROL RESTART` at 20:28 (lighttpd down for 3 s). All four
+  workers run the kit's new `PHP_CGI.EXE`. The index, a forum, login, search and the CAPTCHA
+  image answer 200.
+- **Not done yet:** the GitHub release v8.5.12-vms1 and the website entry. The other phpt sets
+  have not been re-run on 8.5.12.

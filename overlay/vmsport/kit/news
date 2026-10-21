@@ -1,6 +1,13 @@
 PHP for OpenVMS (vms-php) - news
 =================================
 
+8.5.12-vms1 (2026-10)
+
+  Security update: PHP 8.5.12, which fixes CVE-2026-109618 and
+  CVE-2026-109619 (GHSA-w8hw-w9fx-j79w, GHSA-6wmf-4rv5-p3rp: remote code
+  execution through state corrupted by an out-of-memory or other bailout).
+  The VMS patches and the extension set are unchanged.
+
 8.5.11-vms1 (2026-10)
 
   First kit. PHP 8.5.11 for OpenVMS x86-64, built with VSI clang (LP64):

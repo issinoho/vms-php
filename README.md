@@ -7,7 +7,8 @@ mysqli for [MariaDB](https://github.com/issinoho/vms-mariadb), openssl through V
 board behind [lighttpd for OpenVMS](https://github.com/issinoho/vms-lighttpd), as a pool of
 FastCGI processes.
 
-**Status:** PHP **8.5.11**, kit **VMSPHP V8.5-11E1** for x86-64.
+**Status:** PHP **8.5.12**, kit **VMSPHP V8.5-12E1** for x86-64 (the security release for
+CVE-2026-109618 and CVE-2026-109619; the board has run on it since 2026-10-21).
 - PHP's own test suites, against a Linux build of the same release: 11,652 of 12,413 pass on
   VMS, against 11,845 on Linux, and every VMS-only failure is explained (`docs/PHASE2.md`).
 - A 60-minute FastCGI soak ran with no crash and flat memory (`docs/PHASE3.md`).
