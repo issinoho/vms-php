@@ -26,7 +26,9 @@ exit status, or SKIP), then its output, then "@@@END".
 import os, re, shutil, subprocess, sys
 
 top = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-stage = os.path.join(top, 'staging', 'php-8.5.11')
+version = re.search(r'^UPSTREAM_VERSION=(\S+)', open(os.path.join(top, 'upstream.conf')).read(),
+                    re.M).group(1)
+stage = os.path.join(top, 'staging', 'php-' + version)
 
 INI = ['output_handler=', 'open_basedir=', 'disable_functions=', 'output_buffering=Off',
        'error_reporting=32767', 'fatal_error_backtraces=Off', 'display_errors=1',
