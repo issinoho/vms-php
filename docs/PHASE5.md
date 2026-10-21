@@ -95,5 +95,8 @@ out-of-memory or other bailout), fixed in the Zend engine.
 - **The board:** `VMSLIGHTTPD$CONTROL RESTART` at 20:28 (lighttpd down for 3 s). All four
   workers run the kit's new `PHP_CGI.EXE`. The index, a forum, login, search and the CAPTCHA
   image answer 200.
-- **Not done yet:** the GitHub release v8.5.12-vms1 and the website entry. The other phpt sets
-  have not been re-run on 8.5.12.
+- **Release:** [v8.5.12-vms1](https://github.com/issinoho/vms-php/releases/tag/v8.5.12-vms1),
+  the kit and `SHA256SUMS`. The README has the family banner and a notice of the two CVEs.
+- **The website:** vms-grep a542625. The PHP card has a note tag naming the CVEs, the README
+  row moved to vms1 of 8.5.12, and `releases.json` was regenerated. The Pages deploy succeeded.
+- **Not done yet:** the other phpt sets have not been re-run on 8.5.12.
