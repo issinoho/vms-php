@@ -8,7 +8,7 @@
 #     overriding the platform answers (docs/PHASE0.md probes,
 #     vmsport/config/answers.txt).
 # Only configure runs (no make).  libxml2 comes from cache/hostlibs (built from
-# the same release as vms-libxml2), OpenSSL and zlib from the host system; PCRE2
+# the same release as vms-libxml2), SQLite too (tools/host_sqlite3.sh), OpenSSL and zlib from the host system; PCRE2
 # is "external" (vms-pcre2 on VMS) with no JIT, so PHP's bundled copy is not
 # in the object list.
 set -euo pipefail
@@ -23,6 +23,8 @@ hostlibs=$top/cache/hostlibs
 die() { echo "host_configure: error: $*" >&2; exit 1; }
 [ -f "$hostlibs/lib/pkgconfig/libxml-2.0.pc" ] ||
     die "no host libxml2 in cache/hostlibs (see docs/PHASE0.md: libxml2 built from the vms-libxml2 release)"
+[ -f "$hostlibs/lib/pkgconfig/sqlite3.pc" ] ||
+    die "no host SQLite in cache/hostlibs (tools/host_sqlite3.sh: the vms-sqlite release, D28)"
 
 rm -rf "$conf"; mkdir -p "$conf"
 tar -xJf "$tarball" -C "$conf"

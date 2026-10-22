@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # fetch.sh - download the PHP release tarball named in upstream.conf into
 # cache/, verify its SHA-256, and verify its GPG signature against
-# keys/php-8.5-signing-keys.asc (the 8.5 release managers, D27).  Also the pinned CA bundle and Argon2 sources (SHA-256).
+# keys/php-8.5-signing-keys.asc (the 8.5 release managers, D27).  Also the pinned CA bundle and Argon2 sources (SHA-256),
+# and the SQLite release for the host build (SHA3-256: SQLite signs nothing; D28).
 set -euo pipefail
 
 top=$(cd "$(dirname "$0")/.." && pwd)
@@ -49,3 +50,11 @@ argon2=$cache/phc-winner-argon2-$ARGON2_VERSION.tar.gz
 echo "$ARGON2_SHA256  $argon2" | sha256sum -c --quiet - ||
     { echo "fetch: SHA-256 mismatch for $argon2" >&2; exit 1; }
 echo "fetch: $argon2"
+
+# SQLite, for the host build that configure detects (D28)
+sqlite3=$cache/$(basename "$SQLITE3_URL")
+[ -f "$sqlite3" ] || { echo "fetch: downloading $SQLITE3_URL"
+                       curl -fsSL -o "$sqlite3.tmp" "$SQLITE3_URL"; mv "$sqlite3.tmp" "$sqlite3"; }
+[ "$(python3 -I -c 'import hashlib,sys; print(hashlib.sha3_256(open(sys.argv[1],"rb").read()).hexdigest())' "$sqlite3")" = "$SQLITE3_SHA3" ] ||
+    { echo "fetch: SHA3-256 mismatch for $sqlite3" >&2; exit 1; }
+echo "fetch: $sqlite3"
