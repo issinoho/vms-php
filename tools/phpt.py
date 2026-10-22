@@ -43,7 +43,7 @@ INI = ['output_handler=', 'open_basedir=', 'disable_functions=', 'output_bufferi
 BUILT = {'core', 'ctype', 'date', 'dom', 'filter', 'hash', 'json', 'lexbor', 'libxml', 'mbstring',
          'mysqli', 'mysqlnd', 'openssl', 'pcre', 'random', 'reflection', 'session', 'simplexml',
          'spl', 'standard', 'tokenizer', 'uri', 'xml', 'xmlreader', 'xmlwriter', 'opcache', 'zlib',
-         'zend opcache'}
+         'zend opcache', 'pdo', 'pdo_mysql', 'pdo_sqlite', 'sqlite3'}
 UNSUPPORTED = {'POST', 'POST_RAW', 'PUT', 'GET', 'COOKIE', 'CGI', 'STDIN', 'ENV', 'ARGS', 'PHPDBG',
                'CAPTURE_STDIO', 'GZIP_POST', 'DEFLATE_POST', 'REQUEST', 'HEADERS', 'EXPECTHEADERS',
                'FILE_EXTERNAL', 'EXPECT_EXTERNAL', 'EXPECTF_EXTERNAL', 'REDIRECTTEST', 'FILEEOF',

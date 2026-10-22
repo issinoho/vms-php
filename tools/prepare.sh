@@ -71,8 +71,8 @@ python3 "$top/tools/gen_build.py" "$top/cache/hostconf/$name" "$stage" "$top/doc
 printf 'VERSION=%s\nKIT_VERSION=%s-vms%s\n' "$UPSTREAM_VERSION" "$UPSTREAM_VERSION" \
     "$VMS_PATCH_LEVEL" > "$stage/vmsport/version.env"
 # the dependencies' trees for BUILD.COM: <logical name>=<tree in the deps work directory>
-printf 'ZLIB$ROOT=%s\nPCRE2$ROOT=%s\nLIBXML2$ROOT=%s\n' "$ZLIB_TREE" "$PCRE2_TREE" "$LIBXML2_TREE" \
-    > "$stage/vmsport/deps.env"
+printf 'ZLIB$ROOT=%s\nPCRE2$ROOT=%s\nLIBXML2$ROOT=%s\nSQLITE3$ROOT=%s\n' "$ZLIB_TREE" "$PCRE2_TREE" \
+    "$LIBXML2_TREE" "$SQLITE3_TREE" > "$stage/vmsport/deps.env"
 # --- PCSI kit inputs (vmsport/kit/MAKE_KIT.COM builds the kit on the node; D25)
 step "PCSI kit inputs"
 kit=$stage/vmsport/kit

@@ -338,6 +338,8 @@ $ write o obj, "ARGON2_BLAKE2B.OBJ"
 $ write o "PCRE2$ROOT:[LIB]PCRE2-8.OLB/LIBRARY"
 $ write o "LIBXML2$ROOT:[LIB]LIBXML2.OLB/LIBRARY"
 $ write o "ZLIB$ROOT:[LIB]LIBZ.OLB/LIBRARY"
+$! SQLite, vms-sqlite's clang library (sqlite3, pdo_sqlite; D28)
+$ write o "SQLITE3$ROOT:[LIB]LIBSQLITE3.OLB/LIBRARY"
 $ write o "SYS$SHARE:SSL3$LIBSSL_SHR/SHAREABLE"
 $ write o "SYS$SHARE:SSL3$LIBCRYPTO_SHR/SHAREABLE"
 $! the DNS resolver (res_search, dn_expand, dn_skipname as TCPIP$...; D21)

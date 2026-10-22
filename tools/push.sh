@@ -20,7 +20,7 @@ remote=$(echo "$name" | tr . _)
 
 exts="date libxml openssl pcre zlib ctype dom filter hash json lexbor mbstring mysqli
 mysqlnd opcache random reflection session simplexml spl standard tokenizer uri xml
-xmlreader xmlwriter"
+xmlreader xmlwriter pdo pdo_mysql pdo_sqlite sqlite3"
 dirs="main Zend TSRM sapi/cli sapi/cgi"
 for e in $exts; do dirs="$dirs ext/$e"; done
 

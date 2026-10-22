@@ -465,3 +465,36 @@ Alternatives considered:
 - Re-pinning the one key that signed each release: every change of release manager breaks
   `fetch.sh` until the pin is edited again, and the trust set is the same three people.
 - php.net's whole keyring: it trusts every past release manager of every branch.
+
+## D28. 8.5.12-vms2: SQLite and PDO (amends D3)
+
+**Status:** chosen by the user (2026-10-22: vms-sqlite's plan, Phase 3; the library's
+location and the test board).
+
+D3 built no PDO and no SQLite. vms2 adds `pdo`, `pdo_mysql` (on mysqlnd, as mysqli),
+`sqlite3` and `pdo_sqlite`, the last two on vms-sqlite's clang library (SQLite 3.54.1 with its
+own OpenVMS VFS: `$QIO` I/O and C RTL fcntl locks, safe between processes and across UIC
+groups; vms-sqlite D5, D8, D9), linked statically like zlib, pcre2 and libxml2 (D4).
+- **Where the library comes from:** vms-sqlite's `tools/deploy.sh` copies its install tree to
+  the dependency directory (nodes.conf column 8), as `[.SQLITE-3_54_1.INSTALL_X86_64_CLANG]`
+  (vms-sqlite D10); `upstream.conf` pins the release (`SQLITE3_*`) and BUILD.COM defines
+  `SQLITE3$ROOT` from `deps.env`, as for the other dependencies.
+- **configure on the host** detects a SQLite in `cache/hostlibs` built from the same release
+  with vms-sqlite's API-changing options (`tools/host_sqlite3.sh`: no loadable extensions,
+  no WAL), so the answers are the VMS library's: `SQLITE_OMIT_LOAD_EXTENSION`, so
+  `SQLite3::loadExtension` and PDO's are not there; `journal_mode=WAL` leaves the mode
+  as it was. The new defines are listed in `php_config.overrides`.
+- **The Linux reference** (`cache/refbuild`) is rebuilt by `tools/refbuild.sh` with the same
+  options (it was built by hand until now).
+- **Tests:** the `.phpt` sets of `sqlite3`, `pdo` and `pdo_sqlite` against the reference;
+  `pdo_mysql`'s need a MySQL server, which the host has not, as mysqli's (D14); and a new
+  phpBB 3.3 test board on SQLite (its own directory, port and FastCGI pool; the Phase 4
+  board on :18080 and the live board untouched), with `test_phpbb.py` and a load run.
+
+Alternatives considered:
+- SQLite as a shareable image (`SQLITE3$SHR`): updates without relinking PHP, but it must be
+  installed or found by logical name at run time, unlike the other dependencies.
+- PHP's own copy of SQLite: PHP no longer bundles one (since 7.4), and it would use SQLite's
+  unix VFS, whose C RTL I/O is not coherent between processes (vms-sqlite D5).
+- `pdo_sqlite` and `sqlite3` without `pdo_mysql`: phpBB uses mysqli or sqlite3, not PDO; but
+  pdo_mysql costs little beside mysqlnd and is what many PHP applications use.

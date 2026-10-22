@@ -134,3 +134,13 @@ HAVE_DN_SKIPNAME 1
 # board's PHP 8.1 kit stored its users' passwords as argon2id. The reference library
 # is compiled in from vmsport/argon2 (tools/prepare.sh, BUILD.COM).
 HAVE_ARGON2LIB 1
+
+# --- SQLite and PDO (D28): vms-sqlite's library, built on the host with its options
+# (tools/host_sqlite3.sh), so these are the library's answers, not the platform's
+HAVE_SQLITE3 =                        # sqlite3 and pdo_sqlite: vms-sqlite 3.54.1
+HAVE_SQLITE3_CLOSE_V2 =               # in 3.54.1
+HAVE_SQLITE3_ERRSTR =
+HAVE_SQLITE3_EXPANDED_SQL =
+SQLITE_OMIT_LOAD_EXTENSION =          # vms-sqlite D4: no loadable extensions
+PDO_SQLITE_OMIT_LOAD_EXTENSION =      #   (so no SQLite3::loadExtension, PDO loadExtension)
+PDO_USE_MYSQLND =                     # pdo_mysql on mysqlnd, as mysqli

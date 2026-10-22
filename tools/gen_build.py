@@ -191,7 +191,8 @@ for t in var('INCLUDES'):
     if '/hostlibs/' in d or d.startswith('/usr/'):
         continue                    # host libxml2 / system headers: replaced below
     inc.append('-I' + (d or '.'))
-inc += ['-I/libxml2$root/include', '-I/pcre2$root/include', '-I/zlib$root/include']
+inc += ['-I/libxml2$root/include', '-I/pcre2$root/include', '-I/zlib$root/include',
+        '-I/sqlite3$root/include']     # D28: vms-sqlite
 inc += ['-Ivmsport/argon2/include']    # D24: compiled in by BUILD.COM
 open(os.path.join(out_build, 'includes.txt'), 'w').write('\n'.join(inc) + '\n')
 
