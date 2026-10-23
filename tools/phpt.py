@@ -113,6 +113,18 @@ def prepare(setname, dirs):
         f.write('\n'.join(listing) + '\n')
     with open(os.path.join(out, 'UNSUPPORTED.TXT'), 'w') as f:
         f.write('\n'.join(unsupported) + '\n')
+    # ext/pdo/tests run once per driver: run-tests.php does it through the driver's
+    # common.phpt (--REDIRECTTEST--), which sets PDOTEST_DSN and REDIR_TEST_DIR. With
+    # pdo_sqlite's tests in the set, ENV.TXT gives every test the same environment,
+    # as pdo_sqlite's common.phpt does ("@" is the set's top directory; each runner
+    # makes it absolute, vms_phpt.com in VMS syntax).
+    env = []
+    if any(d.rstrip('/') == 'ext/pdo/tests' for d in dirs) and \
+       any(d.rstrip('/') == 'ext/pdo_sqlite/tests' for d in dirs):
+        env = ['PDOTEST_DSN sqlite::memory:', 'REDIR_TEST_DIR @ext/pdo/tests/']
+    if env:
+        with open(os.path.join(out, 'ENV.TXT'), 'w') as f:
+            f.write('\n'.join(env) + '\n')
     print('phpt: %s: %d tests, %d to run, %d unsupported here' % (setname, n, len(listing),
                                                                     len(unsupported)))
 
@@ -197,8 +209,21 @@ def compare(setname, results, ref=None):
         print('phpt %s: %d fail on VMS but pass on Linux (%s.onlyvms)' % (setname, len(onlyvms), results))
 
 
+def set_env(base):
+    """The environment of a set's tests: ours plus its ENV.TXT (see prepare)."""
+    env = dict(os.environ)
+    envfile = os.path.join(base, 'ENV.TXT')
+    if os.path.exists(envfile):
+        for line in open(envfile).read().split('\n'):
+            if line.strip():
+                k, v = line.split(' ', 1)
+                env[k] = base + '/' + v[1:] if v.startswith('@') else v
+    return env
+
+
 def local(setname, php, results):
     base = os.path.join(top, 'cache', 'phpt', setname)
+    env = set_env(base)
     with open(results, 'w', encoding='latin-1') as out:
         for key in open(os.path.join(base, 'LIST.TXT')).read().split('\n'):
             if not key.strip():
@@ -209,20 +234,20 @@ def local(setname, php, results):
             st = None
             if os.path.exists(os.path.join(wd, b + '.skip.php')):
                 r = subprocess.run([php, '-n', '-c', ini, b + '.skip.php'], cwd=wd, capture_output=True,
-                                   timeout=60)
+                                   timeout=60, env=env)
                 if r.stdout.decode('latin-1').strip().lower().startswith('skip'):
                     st = 'SKIP'
             text = ''
             if st is None:
                 try:
                     r = subprocess.run([php, '-n', '-c', ini, b + '.php'], cwd=wd, capture_output=True,
-                                       timeout=120)
+                                       timeout=120, env=env)
                     st, text = str(r.returncode), (r.stdout + r.stderr).decode('latin-1')
                 except subprocess.TimeoutExpired:
                     st, text = 'TIMEOUT', ''
                 if os.path.exists(os.path.join(wd, b + '.clean.php')):
                     subprocess.run([php, '-n', '-c', ini, b + '.clean.php'], cwd=wd, capture_output=True,
-                                   timeout=60)
+                                   timeout=60, env=env)
             out.write('@@@TEST %s %s %s\n%s\n@@@END\n' % (d, b, st, text))
 
 

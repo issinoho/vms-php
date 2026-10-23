@@ -20,6 +20,36 @@ $ php = "$" + p2
 $ top = p1
 $ res = p3
 $ create/fdl="RECORD; FORMAT STREAM_LF;" 'res'
+$! the set's environment (ENV.TXT, tools/phpt.py prepare): process logical
+$! names, which getenv() reads; "@a/b/" is the set's directory a/b, in UNIX
+$! form: PHP opens "/dev/dir/file", not "dev:[dir]file"
+$ if f$search(top + "ENV.TXT") .eqs. "" then goto env_done
+$ open/read envf 'top'ENV.TXT
+$env_loop:
+$ read/end=env_end envf eline
+$ if f$edit(eline, "TRIM") .eqs. "" then goto env_loop
+$ ename = f$element(0, " ", eline)
+$ evalue = eline - ename - " "
+$ if f$extract(0, 1, evalue) .nes. "@" then goto env_def
+$ edev = f$element(0, ":", top)
+$ edirs = top - edev - ":" - "[" - "]"
+$ edir = "/" + edev
+$ ei = 0
+$env_part:
+$ epart = f$element(ei, ".", edirs)
+$ if epart .eqs. "." then goto env_path
+$ edir = edir + "/" + epart
+$ ei = ei + 1
+$ goto env_part
+$env_path:
+$ evalue = edir + "/" + (evalue - "@")
+$env_def:
+$ define/process 'ename' "''evalue'"
+$ write sys$output "PHPT: ''ename' = ''evalue'"
+$ goto env_loop
+$env_end:
+$ close envf
+$env_done:
 $ open/read lst 'top'LIST.TXT
 $ n = 0
 $loop:
