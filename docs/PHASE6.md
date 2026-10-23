@@ -1,7 +1,7 @@
 # Phase 6: 8.5.12-vms2, SQLite and PDO (D28)
 
-**Status:** built, tested, kitted and installed on the live node (2026-10-23): kit V8.5-12E2;
-the board runs on it. Not released yet (with the user).
+**Status:** done (2026-10-23): built, tested, kitted, installed on the live node (the board runs
+on it) and released.
 vms-sqlite's Phase 3 (its `docs/PHASE3.md`).
 
 ## Plan
@@ -64,5 +64,12 @@ relinked from the tested build's objects). SHA-256
   (2026-10-23). (From here they could not be reached: the board answers under its own name,
   not the node's address, and the access log is open without read sharing.)
 
-Next, with the user: the GitHub release `v8.5.12-vms2` (kit, `SHA256SUMS`) and the website
-entry.
+## Released (2026-10-23)
+
+- **vms-php:** [v8.5.12-vms2](https://github.com/issinoho/vms-php/releases/tag/v8.5.12-vms2), the
+  kit and `SHA256SUMS`, tagged on `main` (a8574e3).
+- **vms-sqlite:** the repository is public (https://github.com/issinoho/vms-sqlite), so the
+  README's, NEWS's and SQLITE.NOTICE's links resolve; its own kit and release are its Phase 5.
+- **vms-lighttpd:** the test-tool options (c296d10) pushed; no release.
+- **The website:** vms-grep a69fbbe: PHP's card names SQLite and notes vms2, the README row
+  moved to vms2, `releases.json` regenerated (27 releases); the Pages deploy succeeded.
