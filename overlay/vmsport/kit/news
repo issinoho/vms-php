@@ -10,6 +10,8 @@ PHP for OpenVMS (vms-php) - news
   sqlite3/PDO/pdo_sqlite tests give the same results as on Linux, and a
   phpBB 3.3 board on SQLite passed its checklist and a load run. PHP itself
   (8.5.12) and the other extensions are unchanged from 8.5.12-vms1.
+  [DOC] now also holds the licences of zlib, PCRE2 and libxml2, built in
+  since the first kit, and SQLite's public-domain notice.
 
 8.5.12-vms1 (2026-10)
 

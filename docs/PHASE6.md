@@ -35,11 +35,15 @@ Not run: the `pdo_mysql` set (needs a MySQL server: as mysqli's, D14).
 
 ## The kit (D25)
 
-**PCSI product `VMSPHP` V8.5-12E2**, `ISSINOHO-X86VMS-VMSPHP-V0805-12E2-1.PCSI` (48.8 MB; vms1:
-44.0 MB), `NOCLEAN=1 tools/kit.sh x86` on the clean-built tree (the images relinked from the
-tested build's objects). SHA-256
-`dc5045942d08fb58a9998842527cb8f9744d3479d26a64a17651fadd28092fd2`.
-- New in `[DOC]`: `SQLITE.NOTICE` (SQLite is in the public domain; the version and vms-sqlite).
+**PCSI product `VMSPHP` V8.5-12E2**, `ISSINOHO-X86VMS-VMSPHP-V0805-12E2-1.PCSI` (48,791,552
+bytes; vms1: 44.0 MB), `NOCLEAN=1 tools/kit.sh x86` on the clean-built tree (the images
+relinked from the tested build's objects). SHA-256
+`4dc7de9bb5ee5abeb4486fe92f83ad134723552e74db6ae48abea295eefa8066`.
+- New in `[DOC]`: `SQLITE.NOTICE` (SQLite is in the public domain; the version and vms-sqlite),
+  and the licences of the libraries built in since vms1, missing until now: `ZLIB.LICENSE`
+  (zlib 1.3.2's `LICENSE`), `PCRE2.LICENSE` (PCRE2 10.49's `LICENCE.md`), `LIBXML2.LICENSE`
+  (libxml2 2.15.4's `Copyright`), copied verbatim from the releases pinned in `upstream.conf`
+  (the sibling repositories' verified tarballs).
 - `NEWS`: the 8.5.12-vms2 entry. `README.VMS` section 2: the extensions, and SQLite's notes for
   administrators (sharing a database between accounts, the `-lock` file, no WAL, no
   `loadExtension`, access by UIC protection); section 4: phpBB on SQLite.
@@ -48,7 +52,3 @@ tested build's objects). SHA-256
 Next, with the user: installing it (`PRODUCT INSTALL VMSPHP`) replaces the live board's PHP,
 so it is the user's to do or to ask for, then the board's pool restarted; the GitHub release
 `v8.5.12-vms2` (kit, `SHA256SUMS`) and the website entry.
-
-Seen while kitting, not changed: the kit has PHP's and Argon2's licences but none for the
-other libraries built in since vms1 (zlib, PCRE2, libxml2), whose licences ask for their
-notices in binary distributions.
