@@ -1,6 +1,16 @@
 PHP for OpenVMS (vms-php) - news
 =================================
 
+8.5.12-vms2 (2026-10)
+
+  SQLite and PDO: the sqlite3, PDO, pdo_sqlite and pdo_mysql extensions,
+  with SQLite 3.54.1 from SQLite for OpenVMS (vms-sqlite) built in. Its
+  OpenVMS VFS makes one database safe to share between processes and
+  accounts (rollback journals; no WAL; no loadable extensions). PHP's
+  sqlite3/PDO/pdo_sqlite tests give the same results as on Linux, and a
+  phpBB 3.3 board on SQLite passed its checklist and a load run. PHP itself
+  (8.5.12) and the other extensions are unchanged from 8.5.12-vms1.
+
 8.5.12-vms1 (2026-10)
 
   Security update: PHP 8.5.12, which fixes CVE-2026-109618 and

@@ -51,14 +51,28 @@ anything case-sensitive.
 
 Built in (php -m): Core, ctype, date, dom, filter, hash, json, lexbor, libxml,
 mbstring (without mbregex), mysqli, mysqlnd, openssl, pcre (PCRE2 10.49, no
-JIT), random, Reflection, session, SimpleXML, SPL, standard, tokenizer, uri,
-xml, xmlreader, xmlwriter, zlib, and Zend OPcache (no JIT).
+JIT), PDO, pdo_mysql, pdo_sqlite, random, Reflection, session, SimpleXML,
+SPL, sqlite3, standard, tokenizer, uri, xml, xmlreader, xmlwriter, zlib, and
+Zend OPcache (no JIT).
 
-Not built: gd (no image CAPTCHAs or thumbnails), intl, iconv, curl, pdo,
-sockets, posix, pcntl, phar, ldap, PostgreSQL, SQLite. dl() is not supported.
+Not built: gd (no image CAPTCHAs or thumbnails), intl, iconv, curl, sockets,
+posix, pcntl, phar, ldap, PostgreSQL. dl() is not supported.
 
 password_hash()/password_verify() support bcrypt and Argon2 (argon2i,
 argon2id; the reference implementation is built in).
+
+SQLite (sqlite3 and pdo_sqlite) is SQLite 3.54.1 from SQLite for OpenVMS
+(vms-sqlite), built in. Its own file layer (VFS) makes a database safe to
+share between processes and between accounts in different UIC groups, e.g.
+a FastCGI pool and a CLI user:
+- each database has a lock file beside it, <database>-lock, which SQLite
+  never deletes: to delete a database, delete both (and any -journal);
+- journals are rollback journals; PRAGMA journal_mode=WAL leaves the mode as
+  it was (no WAL on OpenVMS);
+- SQLite3::loadExtension() and PDO's loadExtension are not available;
+- every account that writes the database needs write access to the file, its
+  lock file and its directory (journals are created there), by UIC
+  protection: PHP's is_writable(), which installers check, ignores ACLs.
 
 
 3. Running PHP behind a web server (FastCGI)
@@ -96,6 +110,9 @@ Apache (VSI APACHEWS 2.4): mod_proxy_fcgi and mod_proxy_balancer; see
 
 - Database host: use 127.0.0.1. ("localhost" also works with this build: it
   connects over TCP, as there are no usable Unix-domain sockets on VMS.)
+- SQLite: phpBB 3.3 runs on it (database type "SQLite3"; put the database
+  file outside the board's directory, in a directory the pool's account
+  owns). See section 2 for sharing a database between accounts.
 - Passwords hashed with argon2id by an earlier PHP (VSI's 8.1 did) keep
   working.
 - phpBB's CAPTCHA: choose "Simple image" (ACP > Spambot countermeasures). The

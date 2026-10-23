@@ -1,0 +1,11 @@
+SQLite in PHP for OpenVMS
+=========================
+
+PHP's sqlite3 and pdo_sqlite extensions in this kit have SQLite 3.54.1 built in,
+from SQLite for OpenVMS (vms-sqlite, https://github.com/issinoho/vms-sqlite):
+the SQLite amalgamation with its OpenVMS file layer (VFS) and small patches.
+
+SQLite is in the public domain: "Anyone is free to copy, modify, publish, use,
+compile, sell, or distribute the original SQLite code, either in source code
+form or as a compiled binary, for any purpose, commercial or non-commercial,
+and by any means." (https://www.sqlite.org/copyright.html)

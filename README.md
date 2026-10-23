@@ -6,8 +6,9 @@
 
 A port of [PHP](https://www.php.net/) 8.5 to OpenVMS x86-64, built natively with VSI's clang
 (64-bit pointers, LP64): the CLI (`PHP.EXE`) and CGI/FastCGI (`PHP_CGI.EXE`), with opcache,
-mysqli for [MariaDB](https://github.com/issinoho/vms-mariadb), openssl through VSI's OpenSSL
-3.0 kit (SSL3), and Argon2 password hashing. It runs a live [phpBB](https://www.phpbb.com/) 3.3
+mysqli for [MariaDB](https://github.com/issinoho/vms-mariadb), SQLite (`sqlite3`, `pdo_sqlite`)
+from [SQLite for OpenVMS](https://github.com/issinoho/vms-sqlite), PDO, openssl through VSI's
+OpenSSL 3.0 kit (SSL3), and Argon2 password hashing. It runs a live [phpBB](https://www.phpbb.com/) 3.3
 board behind [lighttpd for OpenVMS](https://github.com/issinoho/vms-lighttpd), as a pool of
 FastCGI processes.
 
@@ -17,8 +18,11 @@ FastCGI processes.
 > [GHSA-6wmf-4rv5-p3rp](https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp)).
 > Upgrade from 8.5.11-vms1 with `PRODUCT INSTALL VMSPHP`, then restart your FastCGI pool.
 
-**Status:** PHP **8.5.12**, kit **VMSPHP V8.5-12E1** for x86-64; the board has run on it since
-2026-10-21.
+**Status:** PHP **8.5.12**. Kit **VMSPHP V8.5-12E1** (8.5.12-vms1) for x86-64; the board has
+run on it since 2026-10-21. **8.5.12-vms2** (kit V8.5-12E2) adds SQLite and PDO: PHP's
+sqlite3, PDO and pdo_sqlite tests (318) give the same results as on Linux, and a phpBB 3.3
+board on SQLite passed the 14-point checklist and a 30-minute load run with no crash
+(`docs/PHASE6.md`).
 - PHP's own test suites, against a Linux build of the same release: on 8.5.11, 11,652 of 12,413
   pass on VMS, against 11,845 on Linux, and every VMS-only failure is explained
   (`docs/PHASE2.md`); on 8.5.12 the zend and fibers sets show no new VMS-only failure
@@ -131,6 +135,8 @@ DirectoryIndex index.php index.html
 ### Applications
 
 - **Database host:** use `127.0.0.1` (or `localhost`, which this build also connects over TCP).
+- **SQLite:** phpBB 3.3 runs on it (database type SQLite3); keep the database file outside the
+  board's directory, in a directory the pool's account owns.
 - **phpBB's CAPTCHA:** choose "Simple image"; the GD CAPTCHA plugins need gd, which is not
   built.
 - **Passwords** hashed with argon2id by VSI's PHP 8.1 keep working.
@@ -143,8 +149,14 @@ DirectoryIndex index.php index.html
   process (`PHP_FCGI_CHILDREN=0`); the web server spreads requests over several of them.
   `proc_open()`, pcntl and `mail()` are not available: send mail over SMTP.
 - **Extensions:** the phpBB set: ctype, dom, filter, json, mbstring, mysqli/mysqlnd, openssl,
-  pcre (PCRE2, no JIT), session, SimpleXML, tokenizer, xml/xmlreader/xmlwriter, zlib, opcache.
-  There is no gd, intl, iconv, curl, pdo, sockets or posix.
+  pcre (PCRE2, no JIT), session, SimpleXML, tokenizer, xml/xmlreader/xmlwriter, zlib, opcache;
+  since 8.5.12-vms2 PDO with pdo_mysql and pdo_sqlite, and sqlite3. There is no gd, intl,
+  iconv, curl, sockets or posix.
+- **SQLite** is SQLite for OpenVMS's 3.54.1: one database can be shared by several processes
+  and accounts (rollback journals; no WAL, no `loadExtension`). Each database has a
+  `<database>-lock` file beside it, which stays: delete it with the database. Every account
+  that writes the database needs write access to it and its directory by UIC protection
+  (`is_writable()` ignores ACLs).
 - **Writable directories** (opcache's file cache, sessions, uploads) must be owned by the PHP
   pool's account: PHP checks them with `access()`, which ignores ACLs.
 - **`USE_ZEND_ALLOC`:** a system logical `"0"` (some older PHP installs leave one) turns PHP's

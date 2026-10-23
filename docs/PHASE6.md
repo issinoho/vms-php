@@ -1,6 +1,7 @@
 # Phase 6: 8.5.12-vms2, SQLite and PDO (D28)
 
-**Status:** built and tested (2026-10-23); the kit and its documents are next, with the user.
+**Status:** built, tested and kitted (2026-10-23): kit V8.5-12E2. Not installed and not released:
+both with the user.
 vms-sqlite's Phase 3 (its `docs/PHASE3.md`).
 
 ## Plan
@@ -31,3 +32,23 @@ Not run: the `pdo_mysql` set (needs a MySQL server: as mysqli's, D14).
   to delete a database, delete both.
 - The board's pool, server and `VMSPHP2$ROOT` are stopped and removed after the tests;
   `p6.sh logical`, `poolstart`, `start` bring them back (`[.PHPBB6]` and its database stay).
+
+## The kit (D25)
+
+**PCSI product `VMSPHP` V8.5-12E2**, `ISSINOHO-X86VMS-VMSPHP-V0805-12E2-1.PCSI` (48.8 MB; vms1:
+44.0 MB), `NOCLEAN=1 tools/kit.sh x86` on the clean-built tree (the images relinked from the
+tested build's objects). SHA-256
+`dc5045942d08fb58a9998842527cb8f9744d3479d26a64a17651fadd28092fd2`.
+- New in `[DOC]`: `SQLITE.NOTICE` (SQLite is in the public domain; the version and vms-sqlite).
+- `NEWS`: the 8.5.12-vms2 entry. `README.VMS` section 2: the extensions, and SQLite's notes for
+  administrators (sharing a database between accounts, the `-lock` file, no WAL, no
+  `loadExtension`, access by UIC protection); section 4: phpBB on SQLite.
+- README.md (status, extensions, SQLite, applications) and APACHE.md updated.
+
+Next, with the user: installing it (`PRODUCT INSTALL VMSPHP`) replaces the live board's PHP,
+so it is the user's to do or to ask for, then the board's pool restarted; the GitHub release
+`v8.5.12-vms2` (kit, `SHA256SUMS`) and the website entry.
+
+Seen while kitting, not changed: the kit has PHP's and Argon2's licences but none for the
+other libraries built in since vms1 (zlib, PCRE2, libxml2), whose licences ask for their
+notices in binary distributions.

@@ -171,9 +171,9 @@ Lessons from moving the phpBB board from the 8.1 kit to this PHP (vms-php PHASE4
   argon2i, argon2id and bcrypt (D24), so existing accounts keep working.
 - **CAPTCHA:** this PHP has no GD. Before switching, set phpBB's CAPTCHA to "Simple image"
   (ACP → Spambot countermeasures); the GD plugins fail with HTTP 500.
-- **Extensions:** VSI's 8.1 adds curl, ldap, pgsql, pdo_pgsql, pdo_sqlite, sqlite3 and openvms.
-  This PHP builds the phpBB set (vms-php D3): no curl, ldap, PostgreSQL, SQLite or pdo. Check
-  what the application uses (`php -m`).
+- **Extensions:** VSI's 8.1 adds curl, ldap, pgsql, pdo_pgsql and openvms. This PHP builds
+  the phpBB set (vms-php D3) and, since 8.5.12-vms2, PDO, pdo_mysql, pdo_sqlite and sqlite3
+  (D28): no curl, ldap or PostgreSQL. Check what the application uses (`php -m`).
 - **`USE_ZEND_ALLOC`:** set it to `"1"` system-wide for this PHP. The 8.1 kit crashes with it
   (vms-php PORTING_LOG #63).
 
