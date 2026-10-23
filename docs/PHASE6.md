@@ -60,10 +60,9 @@ relinked from the tested build's objects). SHA-256
   work at once: in the first 5 minutes LTPHP_19000 used 55 s of CPU, 19001 10 s, 19002 3 s.
   No worker restarted (one log version each, unchanged), and PHP's error log has no entry
   since 18 October.
-- **Not checked:** the board's pages themselves. The node's own address on port 80 serves
-  lighttpd's default page (the board is reached under its own name), nothing listens on 443
-  there, and the access log is open for writing without read sharing. The user's browser is
-  the check.
+- **The pages:** the user checked them in a browser after the restart: they load and work
+  (2026-10-23). (From here they could not be reached: the board answers under its own name,
+  not the node's address, and the access log is open without read sharing.)
 
 Next, with the user: the GitHub release `v8.5.12-vms2` (kit, `SHA256SUMS`) and the website
 entry.
