@@ -498,3 +498,35 @@ Alternatives considered:
   unix VFS, whose C RTL I/O is not coherent between processes (vms-sqlite D5).
 - `pdo_sqlite` and `sqlite3` without `pdo_mysql`: phpBB uses mysqli or sqlite3, not PDO; but
   pdo_mysql costs little beside mysqlnd and is what many PHP applications use.
+
+## D29. The SQLite test board: a new board on :18081, PHP through the GROUP logical `VMSPHP2$ROOT`
+
+**Status:** chosen by the user (2026-10-23, vms2's acceptance test).
+
+vms-sqlite's acceptance test is a phpBB 3.3 board on SQLite under load. It is a new board,
+`tools/p6.sh`: phpBB 3.3.19 (vms-lighttpd's pin) in our work directory's `[.PHPBB6]`, its
+database outside the document root (`[.PHPBB6DATA]PHPBB.SQLITE3`), served on HTTP :18081
+(`[.T6]`; no HTTPS, so :18443 stays the Phase 4 server's) by vms-lighttpd's built test
+server as batch job LTSQLT, with its own FastCGI pool `[.T6POOL]`, LTPHP_19104-19107. The
+Phase 4 board (:18080, 19100-19103) and the live board (19000-19003) are untouched; the
+server image, `P2SERVER.COM`, `PHP_POOL.COM`, `phpbb.conf` and the ini template are
+vms-lighttpd's tree's, used read only.
+
+The pool must run the staged vms2 PHP, and its workers, started by `PHP_POOL.COM` as new
+detached jobs, find PHP only through a logical name they can translate themselves (D15).
+The SYSTEM `VMSPHP$ROOT` is the installed kit the live board runs (D23). So a new name,
+`VMSPHP2$ROOT`, concealed and rooted at the staged tree, is a GROUP logical for our UIC
+group (GRPNAM), defined and removed by `p6.sh logical`/`nological`; nothing else uses it.
+The pool runs as our account, which owns the database file and its directory (the C RTL's
+`access()` ignores ACLs, PORTING_LOG #61; phpBB checks `is_writable`).
+
+vms-lighttpd's `test_phpbb.py` and `soak.sh` take the board's URL, port and secrets file
+from optional environment variables (vms-lighttpd c296d10). The admin password is
+generated into the git-ignored `cache/phpbb6.secrets`; the installer's configuration, which
+holds it, goes to an owner-only directory on the node and is deleted after the install.
+
+Alternatives considered:
+- `PHP_POOL.COM` defining the root per worker (`DEFINE/PROCESS`): no logical tables, but a
+  change to the script the live service's pool is built from.
+- Re-installing the Phase 4 board (:18080) on SQLite: its MySQL setup would be lost.
+- Installing vms2 as the system kit: it would change the live board's PHP.
