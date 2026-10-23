@@ -51,7 +51,18 @@ with no crashes under load.
 tools/fetch.sh                        # download + verify the pinned PHP release into cache/
 tools/probe.sh x86                    # Phase 0 probes (clang) -> docs/probes-x86-clang.txt
 tools/vms.sh <node> dcl '<cmd>' ...   # run DCL; also run/batch/put/get
+tools/prepare.sh; tools/build.sh x86 CLEAN; tools/build.sh x86 ALL   # stage, then build (CLEAN after any header/flag change)
+tools/host_sqlite3.sh                 # host SQLite for configure (vms-sqlite's release and options; D28)
+tools/refbuild.sh                     # the Linux reference cache/refbuild (same release and options)
+python3 tools/phpt.py prepare <set> <ext/x/tests>...; tools/phpt.sh x86 <set>   # .phpt vs the reference
+tools/stage.sh x86                    # the staged install tree <workdir>.VMSPHP] (the test pools' PHP)
+tools/p6.sh x86 logical|poolstart|start|test|soak|stop|poolstop|nological   # the SQLite test board (D29)
+NOCLEAN=1 tools/kit.sh x86            # the PCSI kit -> out/kits/ (without NOCLEAN: CLEAN first)
 ```
+
+State (2026-10-23): 8.5.12-vms2 (SQLite and PDO, D28) is released and installed on the live node;
+the board runs on it. Its record is `docs/PHASE6.md`. SQLite comes from vms-sqlite's install tree
+in the dependency directory (its `tools/deploy.sh`, its D10).
 
 ## Commits
 
