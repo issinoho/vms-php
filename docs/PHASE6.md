@@ -1,7 +1,7 @@
 # Phase 6: 8.5.12-vms2, SQLite and PDO (D28)
 
-**Status:** built, tested and kitted (2026-10-23): kit V8.5-12E2. Not installed and not released:
-both with the user.
+**Status:** built, tested, kitted and installed on the live node (2026-10-23): kit V8.5-12E2;
+the board runs on it. Not released yet (with the user).
 vms-sqlite's Phase 3 (its `docs/PHASE3.md`).
 
 ## Plan
@@ -49,6 +49,21 @@ relinked from the tested build's objects). SHA-256
   `loadExtension`, access by UIC protection); section 4: phpBB on SQLite.
 - README.md (status, extensions, SQLite, applications) and APACHE.md updated.
 
-Next, with the user: installing it (`PRODUCT INSTALL VMSPHP`) replaces the live board's PHP,
-so it is the user's to do or to ask for, then the board's pool restarted; the GitHub release
-`v8.5.12-vms2` (kit, `SHA256SUMS`) and the website entry.
+## Installed (2026-10-23, at the user's request)
+
+- **`PRODUCT INSTALL VMSPHP`** at 11:20 upgraded V8.5-12E1 to V8.5-12E2 in `SYS$COMMON:[VMSPHP]`.
+  `VMSPHP$ROOT` (executive mode, the kit's) and the site's `[ETC]PHP.INI` (18 October) were
+  unchanged; `[DOC]` has the notice and the three licences. The installed CLI: 8.5.12 with
+  sqlite3, PDO, pdo_mysql, pdo_sqlite and mysqli, SQLite 3.54.1.
+- **The board:** `VMSLIGHTTPD$CONTROL RESTART` at 11:22:17 (lighttpd down 2 s). All four workers
+  run the kit's new `PHP_CGI.EXE` (`SYS$COMMON:[VMSPHP][BIN]PHP_CGI.EXE;1` of 11:16) and took
+  work at once: in the first 5 minutes LTPHP_19000 used 55 s of CPU, 19001 10 s, 19002 3 s.
+  No worker restarted (one log version each, unchanged), and PHP's error log has no entry
+  since 18 October.
+- **Not checked:** the board's pages themselves. The node's own address on port 80 serves
+  lighttpd's default page (the board is reached under its own name), nothing listens on 443
+  there, and the access log is open for writing without read sharing. The user's browser is
+  the check.
+
+Next, with the user: the GitHub release `v8.5.12-vms2` (kit, `SHA256SUMS`) and the website
+entry.
