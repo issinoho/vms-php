@@ -100,3 +100,38 @@ out-of-memory or other bailout), fixed in the Zend engine.
 - **The website:** vms-grep a542625. The PHP card has a note tag naming the CVEs, the README
   row moved to vms1 of 8.5.12, and `releases.json` was regenerated. The Pages deploy succeeded.
 - **Not done yet:** the other phpt sets have not been re-run on 8.5.12.
+
+## Update: 8.5.13-vms1 (2026-11-27)
+
+PHP 8.5.13 is a security release: 17 GHSAs, eleven in parts this port builds (Core
+CVE-2026-129474 and -129182, CGI -129538, date -129496, DOM -129501, session -126714, -115560
+and -129481, standard -128064 and -127960, URI -129438). The other six are in FPM, Phar and
+SOAP, which are not built.
+
+- **Pin:** 8.5.13, signed by Volker Dusch. zlib 1.4 (vms-zlib's clang tree) and the CA bundle
+  of 2026-11-05.
+- **Patches:** 0011 (ASN1 time as `zend_long`) rebased onto upstream's changed
+  `openssl_backend_common.c`; the others apply unchanged.
+- **Build:** the first ALL failed on `libxml/parser.h` (#69): the node's dependency directory had
+  been recreated without the clang trees. After restoring them, from CLEAN on x86: 653
+  compiled, 0 failed (639 for 8.5.12), no compiler diagnostics.
+- **Tests:** all 24 sets, against a Linux build of 8.5.13: 13,107 tests, 12,287 pass, 191
+  fail, 629 skipped; 134 fail on VMS only (106 of them in `file`). Against the sets' last
+  VMS runs (8.5.11, and 8.5.12 for zend and fibers), no VMS-only failure went away except two
+  that now pass (`file/php_fd_wrapper_04`, `mbstring/mb_ereg_replace_kname_unterminated_nul`),
+  and 12 are new, all accepted by the user as explained:
+
+  | Tests | Why they fail on VMS |
+  |---|---|
+  | date: 9 `oom_*` (`oom_datetime_construct`, `oom_date_modify`, ...), new in 8.5.12 | PHP's output is right, but the exception message holds the 4 MB input string, and the run's output file splits it into 32,765-byte records, so the comparison sees extra newlines. Test harness, not PHP |
+  | zlib: `oom_deflate_add`, `oom_gzcompress`, new in 8.5.12 | they fill the heap to 512 MB to reach PHP's own limit; the test account's page-file quota stops the `mmap()` first (`exceeded pagefile quota`, then `Out of memory`). Account quota, not PHP |
+  | session: `bug61470` (passed on 8.5.11) | 8.5.13's fix for CVE-2026-126714 makes the files handler check `ftruncate()` before every write (8.5.12 ignored it, and only when the data shrank). The test deletes its own open session file; on VMS `ftruncate()` of that file then fails `ENOENT`, so the write is refused with a warning, where Linux writes into the unlinked file. Either way the data is gone; only the warning is VMS-only. Other session tests (248 pass) and the boards are unaffected |
+
+- **Board:** the SQLite test board (`p6.sh`, its own pool) passed 14 of 14 on the staged 8.5.13.
+- **Kit:** `ISSINOHO-X86VMS-VMSPHP-V0805-13E1-1.PCSI`. On the live node `PRODUCT INSTALL
+  VMSPHP` upgraded V8.5-12E2 at 12:03, then `VMSLIGHTTPD$CONTROL RESTART`: lighttpd and the
+  four workers restarted in under a minute, and the workers took work at once. They run the
+  kit's `PHP_CGI.EXE`; `php -v` and `php_cgi -v` report 8.5.13. The board's index, a forum and
+  search answer 200 with no SQL or PHP error, and Steward (8443) answers as before.
+- **Release:** [v8.5.13-vms1](https://github.com/issinoho/vms-php/releases/tag/v8.5.13-vms1).
+  The kit's `NEWS` has no 8.5.13 entry (written after the kit was built); the next kit has it.

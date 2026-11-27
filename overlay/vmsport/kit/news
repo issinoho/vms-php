@@ -1,6 +1,17 @@
 PHP for OpenVMS (vms-php) - news
 =================================
 
+8.5.13-vms1 (2026-11)
+
+  Security update: PHP 8.5.13, which fixes 17 security bugs, eleven of
+  them in parts this kit contains: PHP-CGI (CVE-2026-129538), sessions
+  (CVE-2026-126714, CVE-2026-115560, CVE-2026-129481), the Zend engine
+  (CVE-2026-129474, CVE-2026-129182), date (CVE-2026-129496), DOM
+  (CVE-2026-129501), URI (CVE-2026-129438) and streams (CVE-2026-128064,
+  CVE-2026-127960). Built with zlib 1.4; CA bundle of 2026-11-05. The VMS
+  patches and the extension set are unchanged. (The 8.5.13-vms1 kit itself
+  shipped before this entry was written.)
+
 8.5.12-vms2 (2026-10)
 
   SQLite and PDO: the sqlite3, PDO, pdo_sqlite and pdo_mysql extensions,

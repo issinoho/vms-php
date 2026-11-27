@@ -60,9 +60,11 @@ tools/p6.sh x86 logical|poolstart|start|test|soak|stop|poolstop|nological   # th
 NOCLEAN=1 tools/kit.sh x86            # the PCSI kit -> out/kits/ (without NOCLEAN: CLEAN first)
 ```
 
-State (2026-10-23): 8.5.12-vms2 (SQLite and PDO, D28) is released and installed on the live node;
-the board runs on it. Its record is `docs/PHASE6.md`. SQLite comes from vms-sqlite's install tree
-in the dependency directory (its `tools/deploy.sh`, its D10).
+State (2026-11-27): 8.5.13-vms1 (security release) is released and installed on the live node;
+the board runs on it. Its record is the 8.5.13 update in `docs/PHASE5.md`. SQLite comes from
+vms-sqlite's install tree in the dependency directory (its `tools/deploy.sh`, its D10); libxml2,
+zlib and PCRE2 from the sibling repos' clang trees there (rebuild them if that directory is
+recreated: PORTING_LOG #69).
 
 ## Commits
 

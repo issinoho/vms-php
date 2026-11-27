@@ -12,21 +12,22 @@ OpenSSL 3.0 kit (SSL3), and Argon2 password hashing. It runs a live [phpBB](http
 board behind [lighttpd for OpenVMS](https://github.com/issinoho/vms-lighttpd), as a pool of
 FastCGI processes.
 
-> **Security:** [v8.5.12-vms1](https://github.com/issinoho/vms-php/releases/tag/v8.5.12-vms1)
-> fixes **CVE-2026-109618** and **CVE-2026-109619**, two critical remote code execution bugs in
-> the Zend engine ([GHSA-w8hw-w9fx-j79w](https://github.com/php/php-src/security/advisories/GHSA-w8hw-w9fx-j79w),
-> [GHSA-6wmf-4rv5-p3rp](https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp)).
-> Upgrade from 8.5.11-vms1 with `PRODUCT INSTALL VMSPHP`, then restart your FastCGI pool.
+> **Security:** [v8.5.13-vms1](https://github.com/issinoho/vms-php/releases/tag/v8.5.13-vms1)
+> is PHP 8.5.13, which fixes 17 security bugs. Eleven of them are in parts this port builds,
+> among them **CVE-2026-129538** (PHP-CGI out-of-bounds read and write, the FastCGI binary the
+> pool runs), two session remote code execution bugs (**CVE-2026-126714**, **CVE-2026-115560**)
+> and two in the Zend engine (**CVE-2026-129474**, **CVE-2026-129182**). Upgrade with
+> `PRODUCT INSTALL VMSPHP`, then restart your FastCGI pool.
 
-**Status:** PHP **8.5.12**. Kit **VMSPHP V8.5-12E1** (8.5.12-vms1) for x86-64; the board has
-run on it since 2026-10-21. **8.5.12-vms2** (kit V8.5-12E2) adds SQLite and PDO: PHP's
+**Status:** PHP **8.5.13**. Kit **VMSPHP V8.5-13E1** (8.5.13-vms1) for x86-64; the board has
+run on it since 2026-11-27. **8.5.12-vms2** (kit V8.5-12E2) added SQLite and PDO: PHP's
 sqlite3, PDO and pdo_sqlite tests (318) give the same results as on Linux, and a phpBB 3.3
 board on SQLite passed the 14-point checklist and a 30-minute load run with no crash
 (`docs/PHASE6.md`).
 - PHP's own test suites, against a Linux build of the same release: on 8.5.11, 11,652 of 12,413
   pass on VMS, against 11,845 on Linux, and every VMS-only failure is explained
-  (`docs/PHASE2.md`); on 8.5.12 the zend and fibers sets show no new VMS-only failure
-  (`docs/PHASE5.md`).
+  (`docs/PHASE2.md`). On 8.5.13 all 24 sets were rerun (13,107 tests): 12,287 pass on VMS, and
+  the 12 VMS-only failures not seen on 8.5.11 are explained (`docs/PHASE5.md`).
 - A 60-minute FastCGI soak ran with no crash and flat memory (`docs/PHASE3.md`).
 - phpBB's checklist passes 14 of 14, and a load run had no crash where PHP 8.1 had four; the
   board has run on it since 2026-10-17 (`docs/PHASE4.md`).
